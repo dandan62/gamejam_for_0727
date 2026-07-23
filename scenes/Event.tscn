@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/Event.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="2"]
+
+[node name="Event" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.106, 0.078, 0.047, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+custom_minimum_size = Vector2(420, 0)
+
+[node name="EventNameLabel" type="Label" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+text = "イベント"
+
+[node name="EventImage" type="TextureRect" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 140)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DescLabel" type="Label" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "何かが起きた。"
+
+[node name="ChoicesBox" type="VBoxContainer" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HUD" parent="." instance=ExtResource("2")]
+layout_mode = 1

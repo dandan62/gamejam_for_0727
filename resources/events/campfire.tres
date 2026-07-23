@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="EventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/EventData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/EventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="1"]
+script = ExtResource("2")
+label = "焚火で休む (HP+15)"
+gold_cost = 0
+gold_delta = 0
+hp_delta = 15
+max_hp_delta = 0
+remove_random_card = false
+result_text = "体力が回復した。"
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource("2")
+label = "そのまま先を急ぐ"
+gold_cost = 0
+gold_delta = 5
+hp_delta = 0
+max_hp_delta = 0
+remove_random_card = false
+result_text = "道中で5Gを拾った。"
+
+[resource]
+script = ExtResource("1")
+event_name = "荒野の焚火"
+description = "夜営の焚火を見つけた。休んでいくか、それとも先を急ぐか。"
+choices = Array[Resource]([SubResource("1"), SubResource("2")])
