@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://btcaupd2xjj31"]
+
+[ext_resource type="Script" uid="uid://dntpa2kuj0fir" path="res://scripts/CardData.gd" id="1_jgnbj"]
+
+[resource]
+script = ExtResource("1_jgnbj")
+id = 3
+card_name = "attack"
+janken_hands = Array[int]([1])
+value = 10
+description = "{value} のシールドを得る。"

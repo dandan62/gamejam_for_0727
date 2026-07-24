@@ -117,6 +117,10 @@ static func _effect_text(action_type: int, value: int) -> String:
 			return "🛡%d" % value
 		CardData.CardType.POWER:
 			return "✚%d" % value
+		CardData.CardType.CHARGE:
+			return "↑%d" % value
+		CardData.CardType.SHIELD_BREAK:
+			return "破"
 	return "⚔%d" % value
 
 

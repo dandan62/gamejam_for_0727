@@ -7,7 +7,8 @@ class_name CardData
 
 enum Hand { ROCK, PAPER, SCISSORS }
 enum Rarity { COMMON, UNCOMMON, RARE }
-enum CardType { ATTACK, SKILL, POWER }
+## 攻撃 / スキル=防御 / パワー=回復 / 溜め=次の攻撃強化 / シールドブレイク=ダメージ無しで敵ブロック半減
+enum CardType { ATTACK, SKILL, POWER, CHARGE, SHIELD_BREAK }
 
 ## カード固有の番号(ID)。カードを番号で管理・参照するためのユニークな値。
 ## デッキ構成やショップ・イベントで、この番号を使ってカードを指定できる。
@@ -61,6 +62,8 @@ func get_type_label() -> String:
 		CardType.ATTACK: return "攻撃"
 		CardType.SKILL: return "スキル"
 		CardType.POWER: return "パワー"
+		CardType.CHARGE: return "溜め"
+		CardType.SHIELD_BREAK: return "崩し"
 	return ""
 
 ## じゃんけん属性ごとの色。グー=赤 / チョキ=黄 / パー=青

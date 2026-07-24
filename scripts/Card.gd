@@ -16,10 +16,11 @@ func setup(data: CardData) -> void:
 	%HandsLabel.text = data.get_hand_icons()
 
 	var prefix := "⚔"
-	if data.card_type == CardData.CardType.SKILL:
-		prefix = "🛡"
-	elif data.card_type == CardData.CardType.POWER:
-		prefix = "✚"
+	match data.card_type:
+		CardData.CardType.SKILL: prefix = "🛡"
+		CardData.CardType.POWER: prefix = "✚"
+		CardData.CardType.CHARGE: prefix = "↑"
+		CardData.CardType.SHIELD_BREAK: prefix = "破"
 	%ValueLabel.text = "%s %d" % [prefix, data.value]
 
 	# 背景と角丸のみ（枠色はオーバーレイで属性ごとに描画する）

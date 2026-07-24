@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1")
-id = 4
-card_name = "応急手当"
-janken_hands = Array[int]([1])
-rarity = 1
-card_type = 2
+id = 13
+card_name = "カード13"
+janken_hands = Array[int]([0])
+rarity = 0
+card_type = 0
 cost = 1
-value = 10
-description = "HPを{value} 回復する。"
+value = 6
+description = "{value} ダメージを与える。"
