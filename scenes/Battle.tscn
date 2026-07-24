@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://c05hjthri3682" path="res://scripts/Battle.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/PrepSelectionUI.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/DuelPhaseUI.tscn" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="ehp_bg"]
 bg_color = Color(0.1, 0.08, 0.05, 1)
@@ -125,6 +126,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Main" type="VBoxContainer" parent="ShowdownPanel" unique_id=626689249]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -253,6 +255,24 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
+
+[node name="ShowdownViewportContainer" type="SubViewportContainer" parent="ShowdownPanel"]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 4
+
+[node name="ShowdownViewport" type="SubViewport" parent="ShowdownPanel/ShowdownViewportContainer"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
+
+[node name="DuelPhaseUI" parent="ShowdownPanel/ShowdownViewportContainer/ShowdownViewport" instance=ExtResource("4")]
 
 [node name="HUD" parent="." unique_id=1751153560 instance=ExtResource("2")]
 layout_mode = 1

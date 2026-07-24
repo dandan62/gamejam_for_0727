@@ -27,6 +27,7 @@ enum Phase { PREP, SHOWDOWN }
 
 # --- 準備フェーズ ---
 @onready var prep_ui: PrepSelectionUI = $PrepPanel/PrepViewportContainer/PrepViewport/PrepSelectionUI
+@onready var duel_ui: DuelPhaseUI = $ShowdownPanel/ShowdownViewportContainer/ShowdownViewport/DuelPhaseUI
 
 # --- 勝負フェーズ ---
 @onready var show_enemy_name: Label = %ShowEnemyName
@@ -133,6 +134,7 @@ func _start_prep() -> void:
 		GameManager.enemy_upcoming,
 		GameManager.hp,
 		GameManager.max_hp,
+		GameManager.player_shield,
 		GameManager.PREP_SECONDS
 	)
 
@@ -172,7 +174,7 @@ func _confirm_set() -> void:
 func _start_showdown() -> void:
 	prep_panel.visible = false
 	showdown_panel.visible = true
-	hud.visible = true
+	hud.visible = false
 
 	battle_over = false
 	show_enemy_name.text = GameManager.current_enemy.enemy_name
@@ -183,6 +185,14 @@ func _start_showdown() -> void:
 	player_hp_bar.max_value = GameManager.max_hp
 	player_hp_bar.value = _player_hp_display
 	log_label.text = ""
+	duel_ui.begin_showdown(
+		GameManager.hp,
+		GameManager.max_hp,
+		GameManager.player_shield,
+		GameManager.enemy_hp,
+		GameManager.enemy_max_hp,
+		GameManager.enemy_shield
+	)
 	_auto_play()
 
 ## 3ターンを自動で順に進行させる（クリック不要）
@@ -200,6 +210,112 @@ func _auto_play() -> void:
 	_start_prep()
 
 func _play_turn() -> void:
+	var player_card: CardData = GameManager.slots[turn_index]
+	var enemy_turn: Dictionary = GameManager.enemy_upcoming[turn_index]
+	var player_hands: Array = player_card.janken_hands if player_card else []
+	var result: Dictionary = GameManager.resolve_hands(player_hands, enemy_turn.hands)
+
+	duel_ui.present_fight(player_card, enemy_turn)
+	await get_tree().create_timer(0.25).timeout
+	await duel_ui.play_shot_cycle()
+
+	var effect_parts: Array[String] = []
+	if result.player_acts and player_card:
+		effect_parts.append(_apply_and_describe_player_card(player_card))
+	if result.enemy_acts:
+		effect_parts.append(_apply_and_describe_enemy_turn(enemy_turn))
+
+	effect_parts = effect_parts.filter(func(text: String) -> bool: return not text.is_empty())
+	var effect_text := " / ".join(effect_parts)
+	if effect_text.is_empty():
+		effect_text = "NO EFFECT"
+
+	var round_state: StringName
+	if result.player_acts and result.enemy_acts:
+		round_state = &"draw"
+	elif result.player_acts:
+		round_state = &"won"
+	else:
+		round_state = &"lost"
+
+	duel_ui.show_result(round_state, effect_text)
+	duel_ui.set_vitals(
+		GameManager.hp,
+		GameManager.max_hp,
+		GameManager.player_shield,
+		GameManager.enemy_hp,
+		GameManager.enemy_max_hp,
+		GameManager.enemy_shield
+	)
+	await get_tree().create_timer(0.7).timeout
+
+
+func _apply_and_describe_player_card(card: CardData) -> String:
+	var enemy_hp_before := GameManager.enemy_hp
+	var enemy_shield_before := GameManager.enemy_shield
+	var player_hp_before := GameManager.hp
+	var player_shield_before := GameManager.player_shield
+	var player_charge_before := GameManager.player_charge
+
+	GameManager.apply_player_card(card)
+
+	match card.card_type:
+		CardData.CardType.ATTACK:
+			return _damage_summary(
+				"DEALT",
+				enemy_hp_before - GameManager.enemy_hp,
+				enemy_shield_before - GameManager.enemy_shield
+			)
+		CardData.CardType.SKILL:
+			return "GAINED %d SHIELD" % (GameManager.player_shield - player_shield_before)
+		CardData.CardType.POWER:
+			var healed := GameManager.hp - player_hp_before
+			return "HEALED %d HP" % healed if healed > 0 else "HEALTH FULL"
+		CardData.CardType.CHARGE:
+			return "CHARGED +%d" % (GameManager.player_charge - player_charge_before)
+		CardData.CardType.SHIELD_BREAK:
+			return "BROKE %d SHIELD" % (enemy_shield_before - GameManager.enemy_shield)
+	return ""
+
+
+func _apply_and_describe_enemy_turn(turn: Dictionary) -> String:
+	var player_hp_before := GameManager.hp
+	var player_shield_before := GameManager.player_shield
+	var enemy_hp_before := GameManager.enemy_hp
+	var enemy_shield_before := GameManager.enemy_shield
+	var enemy_charge_before := GameManager.enemy_charge
+
+	GameManager.apply_enemy_turn(turn)
+
+	match str(turn.get("type", "")):
+		"attack", "pierce":
+			return _damage_summary(
+				"TOOK",
+				player_hp_before - GameManager.hp,
+				player_shield_before - GameManager.player_shield
+			)
+		"skill":
+			return "ENEMY +%d SHIELD" % (GameManager.enemy_shield - enemy_shield_before)
+		"power":
+			var healed := GameManager.enemy_hp - enemy_hp_before
+			return "ENEMY HEALED %d" % healed if healed > 0 else "ENEMY HEALTH FULL"
+		"charge":
+			return "ENEMY CHARGED +%d" % (GameManager.enemy_charge - enemy_charge_before)
+	return ""
+
+
+func _damage_summary(verb: String, hp_damage: int, shield_damage: int) -> String:
+	var parts: Array[String] = []
+	if hp_damage > 0:
+		parts.append("%s %d DAMAGE" % [verb, hp_damage])
+	if shield_damage > 0:
+		parts.append("BROKE %d SHIELD" % shield_damage)
+	if parts.is_empty():
+		return "NO DAMAGE"
+	return " / ".join(parts)
+
+
+func _play_turn_legacy() -> void:
 	for c in player_slot.get_children():
 		c.queue_free()
 	for c in enemy_slot.get_children():

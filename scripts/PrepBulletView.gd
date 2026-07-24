@@ -58,7 +58,6 @@ func _ready() -> void:
 	_hit_button.flat = true
 	_hit_button.focus_mode = Control.FOCUS_NONE
 	_hit_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_hit_button.tooltip_text = "Load bullet"
 	var empty_style := StyleBoxEmpty.new()
 	for style_name in [&"normal", &"hover", &"pressed", &"focus", &"disabled"]:
 		_hit_button.add_theme_stylebox_override(style_name, empty_style)

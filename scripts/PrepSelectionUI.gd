@@ -27,6 +27,7 @@ const SLOT_CENTERS := [
 @onready var hand_layer: Control = %HandLayer
 @onready var slot_metadata_layer: Control = %SlotMetadataLayer
 @onready var health_fill: PrepHealthFill = %HealthFill
+@onready var shield_fill: PrepShieldFill = %ShieldFill
 @onready var health_text: Label = %HealthText
 @onready var watch_needle: TextureRect = %WatchNeedle
 @onready var confirm_art: TextureRect = %ConfirmArt
@@ -74,6 +75,7 @@ func configure(
 	enemy_upcoming: Array,
 	hp: int,
 	max_hp: int,
+	shield: int,
 	duration: float
 ) -> void:
 	_hand.assign(hand)
@@ -83,6 +85,7 @@ func configure(
 	_confirm_down = false
 	_update_confirm_visual()
 	set_health(hp, max_hp)
+	set_shield(shield, max_hp)
 	update_timer(duration, duration)
 	_render_enemy_intents()
 	_render_hand()
@@ -109,6 +112,13 @@ func set_health(hp: int, max_hp: int) -> void:
 		ratio = float(hp) / float(max_hp)
 	health_fill.set_ratio(ratio)
 	health_text.text = "%d/%d" % [hp, max_hp]
+
+
+func set_shield(shield: int, max_hp: int) -> void:
+	var ratio := 0.0
+	if max_hp > 0:
+		ratio = float(shield) / float(max_hp)
+	shield_fill.set_ratio(ratio)
 
 
 func _render_enemy_intents() -> void:

@@ -1,0 +1,136 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/DuelPhaseUI.gd" id="1_duel"]
+[ext_resource type="Texture2D" path="res://assets/ui/duel/duel_background.png" id="2_background"]
+[ext_resource type="Script" path="res://scripts/DuelGaugeLayer.gd" id="3_gauges"]
+[ext_resource type="Texture2D" path="res://assets/ui/duel/health_bar.png" id="4_health_bar"]
+[ext_resource type="Texture2D" path="res://assets/ui/duel/ui_base.png" id="5_ui_base"]
+[ext_resource type="Texture2D" path="res://assets/ui/duel/round_won.png" id="6_won"]
+[ext_resource type="Texture2D" path="res://assets/ui/duel/round_lost.png" id="7_lost"]
+
+[node name="DuelPhaseUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture_filter = 1
+script = ExtResource("1_duel")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Gunmen" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 0
+
+[node name="HealthBarFrame" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("4_health_bar")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="GaugeLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+script = ExtResource("3_gauges")
+
+[node name="UIBase" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("5_ui_base")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="PlayerBulletAnchor" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 54.0
+offset_top = 39.0
+offset_right = 102.0
+offset_bottom = 94.0
+mouse_filter = 2
+
+[node name="EnemyBulletAnchor" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 218.0
+offset_top = 39.0
+offset_right = 266.0
+offset_bottom = 94.0
+mouse_filter = 2
+
+[node name="RoundWon" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("6_won")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="RoundLost" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("7_lost")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="RoundDraw" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 100.0
+offset_top = 42.0
+offset_right = 220.0
+offset_bottom = 57.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "ROUND DRAW!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EffectLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 94.0
+offset_top = 60.0
+offset_right = 226.0
+offset_bottom = 84.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 1
+theme_override_constants/line_spacing = -2
+theme_override_font_sizes/font_size = 7
+text = "DEALT 6 DAMAGE"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2

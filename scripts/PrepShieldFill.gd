@@ -1,12 +1,12 @@
 extends Control
-class_name PrepHealthFill
+class_name PrepShieldFill
 
-const HEART_TEXTURE := preload("res://assets/ui/prep/health_bar_content.png")
-const HEART_BOUNDS := Rect2i(12, 58, 55, 49)
+const SHIELD_TEXTURE := preload("res://assets/ui/prep/shield_bar.png")
+const SHIELD_BOUNDS := Rect2i(12, 58, 55, 49)
 const CHANGE_DURATION := 0.6
 
-var _display_ratio := 1.0
-var _target_ratio := 1.0
+var _display_ratio := 0.0
+var _target_ratio := 0.0
 var _change_per_second := 0.0
 
 
@@ -40,18 +40,18 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var visible_rows := clampi(
-		ceili(float(HEART_BOUNDS.size.y) * _display_ratio),
+		ceili(float(SHIELD_BOUNDS.size.y) * _display_ratio),
 		0,
-		HEART_BOUNDS.size.y
+		SHIELD_BOUNDS.size.y
 	)
 	if visible_rows == 0:
 		return
 
-	var top_y := HEART_BOUNDS.end.y - visible_rows
+	var top_y := SHIELD_BOUNDS.end.y - visible_rows
 	var visible_region := Rect2(
-		HEART_BOUNDS.position.x,
+		SHIELD_BOUNDS.position.x,
 		top_y,
-		HEART_BOUNDS.size.x,
+		SHIELD_BOUNDS.size.x,
 		visible_rows
 	)
-	draw_texture_rect_region(HEART_TEXTURE, visible_region, visible_region)
+	draw_texture_rect_region(SHIELD_TEXTURE, visible_region, visible_region)

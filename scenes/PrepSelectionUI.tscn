@@ -1,41 +1,42 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene format=3 uid="uid://ctpdt2ggoqlw0"]
 
-[ext_resource type="Script" path="res://scripts/PrepSelectionUI.gd" id="1_ui"]
-[ext_resource type="Script" path="res://scripts/PrepHealthFill.gd" id="2_health"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/enemy_intent.png" id="3_enemy"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/hp_bar.png" id="4_hp"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/watch.png" id="5_watch"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/watch_needle.png" id="6_needle"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/revolver_rounds.png" id="7_rounds"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/inserted_1.png" id="8_insert1"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/inserted_2.png" id="9_insert2"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/inserted_3.png" id="10_insert3"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/belt_base.png" id="11_belt"]
-[ext_resource type="Texture2D" path="res://assets/ui/prep/confirm_button.png" id="12_confirm"]
+[ext_resource type="Script" uid="uid://couwkkxs0hc3x" path="res://scripts/PrepSelectionUI.gd" id="1_ui"]
+[ext_resource type="Script" uid="uid://ceaguc56x2s22" path="res://scripts/PrepHealthFill.gd" id="2_health"]
+[ext_resource type="Texture2D" uid="uid://bsutayracb08p" path="res://assets/ui/prep/enemy_intent.png" id="3_enemy"]
+[ext_resource type="Texture2D" uid="uid://lkrcvuo2k440" path="res://assets/ui/prep/hp_bar.png" id="4_hp"]
+[ext_resource type="Texture2D" uid="uid://crcn5e5f6wkni" path="res://assets/ui/prep/watch.png" id="5_watch"]
+[ext_resource type="Texture2D" uid="uid://6ww3vda3p2c8" path="res://assets/ui/prep/watch_needle.png" id="6_needle"]
+[ext_resource type="Texture2D" uid="uid://b4ht7xn07y6rg" path="res://assets/ui/prep/revolver_rounds.png" id="7_rounds"]
+[ext_resource type="Texture2D" uid="uid://di1ceaq52sryy" path="res://assets/ui/prep/inserted_1.png" id="8_insert1"]
+[ext_resource type="Texture2D" uid="uid://cfhmjhf3e1628" path="res://assets/ui/prep/inserted_2.png" id="9_insert2"]
+[ext_resource type="Texture2D" uid="uid://cfy0oyh2s27yn" path="res://assets/ui/prep/inserted_3.png" id="10_insert3"]
+[ext_resource type="Texture2D" uid="uid://uejkuobp884o" path="res://assets/ui/prep/belt_base.png" id="11_belt"]
+[ext_resource type="Texture2D" uid="uid://7ysnpm84xprn" path="res://assets/ui/prep/confirm_button.png" id="12_confirm"]
+[ext_resource type="Script" path="res://scripts/PrepShieldFill.gd" id="13_shield"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_needle"]
 atlas = ExtResource("6_needle")
 region = Rect2(276, 28, 6, 21)
 
-[node name="PrepSelectionUI" type="Control"]
+[node name="PrepSelectionUI" type="Control" unique_id=2135426655]
 unique_name_in_owner = true
+texture_filter = 1
 custom_minimum_size = Vector2(320, 180)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 1
-texture_filter = 1
 script = ExtResource("1_ui")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=200006316]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 color = Color(0.164706, 0.117647, 0.0784314, 1)
 
-[node name="EnemyIntentArt" type="TextureRect" parent="."]
+[node name="EnemyIntentArt" type="TextureRect" parent="." unique_id=597796859]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -43,14 +44,14 @@ mouse_filter = 2
 texture = ExtResource("3_enemy")
 expand_mode = 1
 
-[node name="EnemyBulletLayer" type="Control" parent="."]
+[node name="EnemyBulletLayer" type="Control" parent="." unique_id=506066244]
 unique_name_in_owner = true
-layout_mode = 0
+anchors_preset = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 
-[node name="HealthFrame" type="TextureRect" parent="."]
+[node name="HealthFrame" type="TextureRect" parent="." unique_id=1539541930]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -58,24 +59,29 @@ mouse_filter = 2
 texture = ExtResource("4_hp")
 expand_mode = 1
 
-[node name="HealthFill" type="Control" parent="."]
+[node name="HealthFill" type="Control" parent="." unique_id=1119086452]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 6.0
-offset_top = 52.0
-offset_right = 73.0
-offset_bottom = 116.0
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
 mouse_filter = 2
 script = ExtResource("2_health")
 
-[node name="HealthText" type="Label" parent="."]
+[node name="ShieldFill" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+script = ExtResource("13_shield")
+
+[node name="HealthText" type="Label" parent="." unique_id=1089481231]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 6.0
 offset_top = 115.0
 offset_right = 73.0
 offset_bottom = 126.0
-mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
 theme_override_constants/outline_size = 1
@@ -83,7 +89,7 @@ theme_override_font_sizes/font_size = 8
 text = "50/50"
 horizontal_alignment = 1
 
-[node name="WatchArt" type="TextureRect" parent="."]
+[node name="WatchArt" type="TextureRect" parent="." unique_id=367600407]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -91,19 +97,19 @@ mouse_filter = 2
 texture = ExtResource("5_watch")
 expand_mode = 1
 
-[node name="WatchNeedle" type="TextureRect" parent="."]
+[node name="WatchNeedle" type="TextureRect" parent="." unique_id=108668043]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 276.0
 offset_top = 28.0
 offset_right = 282.0
 offset_bottom = 49.0
-pivot_offset = Vector2(4, 19)
+pivot_offset = Vector2(3, 18)
 mouse_filter = 2
 texture = SubResource("AtlasTexture_needle")
 expand_mode = 1
 
-[node name="RevolverRounds" type="TextureRect" parent="."]
+[node name="RevolverRounds" type="TextureRect" parent="." unique_id=2063925666]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -111,7 +117,7 @@ mouse_filter = 2
 texture = ExtResource("7_rounds")
 expand_mode = 1
 
-[node name="InsertedRound1" type="TextureRect" parent="."]
+[node name="InsertedRound1" type="TextureRect" parent="." unique_id=1351622227]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
@@ -121,7 +127,7 @@ mouse_filter = 2
 texture = ExtResource("8_insert1")
 expand_mode = 1
 
-[node name="InsertedRound2" type="TextureRect" parent="."]
+[node name="InsertedRound2" type="TextureRect" parent="." unique_id=275917358]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
@@ -131,7 +137,7 @@ mouse_filter = 2
 texture = ExtResource("9_insert2")
 expand_mode = 1
 
-[node name="InsertedRound3" type="TextureRect" parent="."]
+[node name="InsertedRound3" type="TextureRect" parent="." unique_id=1152862130]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
@@ -141,7 +147,7 @@ mouse_filter = 2
 texture = ExtResource("10_insert3")
 expand_mode = 1
 
-[node name="BeltArt" type="TextureRect" parent="."]
+[node name="BeltArt" type="TextureRect" parent="." unique_id=2074375936]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -149,21 +155,21 @@ mouse_filter = 2
 texture = ExtResource("11_belt")
 expand_mode = 1
 
-[node name="HandLayer" type="Control" parent="."]
+[node name="HandLayer" type="Control" parent="." unique_id=284566665]
 unique_name_in_owner = true
-layout_mode = 0
+anchors_preset = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 
-[node name="SlotMetadataLayer" type="Control" parent="."]
+[node name="SlotMetadataLayer" type="Control" parent="." unique_id=368236366]
 unique_name_in_owner = true
-layout_mode = 0
+anchors_preset = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 
-[node name="SlotButton1" type="Button" parent="."]
+[node name="SlotButton1" type="Button" parent="." unique_id=1557078904]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 107.0
@@ -173,7 +179,7 @@ offset_bottom = 126.0
 focus_mode = 0
 flat = true
 
-[node name="SlotButton2" type="Button" parent="."]
+[node name="SlotButton2" type="Button" parent="." unique_id=626348102]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 147.0
@@ -183,7 +189,7 @@ offset_bottom = 102.0
 focus_mode = 0
 flat = true
 
-[node name="SlotButton3" type="Button" parent="."]
+[node name="SlotButton3" type="Button" parent="." unique_id=1295745959]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 187.0
@@ -193,7 +199,7 @@ offset_bottom = 126.0
 focus_mode = 0
 flat = true
 
-[node name="ConfirmArt" type="TextureRect" parent="."]
+[node name="ConfirmArt" type="TextureRect" parent="." unique_id=1523188943]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 320.0
@@ -202,7 +208,7 @@ mouse_filter = 2
 texture = ExtResource("12_confirm")
 expand_mode = 1
 
-[node name="ConfirmButton" type="Button" parent="."]
+[node name="ConfirmButton" type="Button" parent="." unique_id=1958540151]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 238.0
