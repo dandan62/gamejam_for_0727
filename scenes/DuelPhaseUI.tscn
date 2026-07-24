@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/DuelPhaseUI.gd" id="1_duel"]
 [ext_resource type="Texture2D" path="res://assets/ui/duel/duel_background.png" id="2_background"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/duel/ui_base.png" id="5_ui_base"]
 [ext_resource type="Texture2D" path="res://assets/ui/duel/round_won.png" id="6_won"]
 [ext_resource type="Texture2D" path="res://assets/ui/duel/round_lost.png" id="7_lost"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/revolver_gunshot.wav" id="8_gunshot"]
 
 [node name="DuelPhaseUI" type="Control"]
 layout_mode = 3
@@ -18,6 +19,12 @@ grow_vertical = 2
 mouse_filter = 2
 texture_filter = 1
 script = ExtResource("1_duel")
+
+[node name="GunshotAudio" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("8_gunshot")
+volume_db = -4.0
+max_polyphony = 4
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0

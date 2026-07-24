@@ -28,6 +28,7 @@ enum Phase { PREP, SHOWDOWN }
 # --- 準備フェーズ ---
 @onready var prep_ui: PrepSelectionUI = $PrepPanel/PrepViewportContainer/PrepViewport/PrepSelectionUI
 @onready var duel_ui: DuelPhaseUI = $ShowdownPanel/ShowdownViewportContainer/ShowdownViewport/DuelPhaseUI
+@onready var prep_insert_audio: AudioStreamPlayer = %PrepInsertAudio
 
 # --- 勝負フェーズ ---
 @onready var show_enemy_name: Label = %ShowEnemyName
@@ -146,6 +147,7 @@ func _on_hand_card_clicked(card: CardData) -> void:
 		return
 	GameManager.slots[empty_index] = card
 	prep_ui.refresh_selection(GameManager.prep_hand, GameManager.slots)
+	prep_insert_audio.play()
 
 func _on_slot_clicked(index: int) -> void:
 	GameManager.slots[index] = null

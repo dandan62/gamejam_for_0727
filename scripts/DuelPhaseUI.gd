@@ -13,6 +13,7 @@ const ANIMATION_FRAMES := 5
 @onready var round_lost: TextureRect = %RoundLost
 @onready var round_draw: Label = %RoundDraw
 @onready var effect_label: Label = %EffectLabel
+@onready var gunshot_audio: AudioStreamPlayer = %GunshotAudio
 
 var _animation_texture: AtlasTexture
 
@@ -68,6 +69,7 @@ func present_fight(player_card: CardData, enemy_turn: Dictionary) -> void:
 
 
 func play_shot_cycle() -> void:
+	gunshot_audio.play()
 	for frame_index in range(1, ANIMATION_FRAMES):
 		_set_animation_frame(frame_index)
 		await get_tree().create_timer(SHOT_FRAME_SECONDS).timeout
