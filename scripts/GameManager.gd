@@ -34,6 +34,7 @@ var enemy_hp: int
 var enemy_max_hp: int
 var player_shield: int = 0
 var enemy_shield: int = 0
+var enemy_charge: int = 0  # 敵の「溜め」。次の敵の攻撃に加算される
 
 var prep_hand: Array[CardData] = []
 var slots: Array = [null, null, null]
@@ -42,26 +43,10 @@ var current_scale: float = 1.0
 var game_over_reason: String = "" # "win" / "lose"
 
 func _ready() -> void:
-	all_cards.assign(_load_resources_in_dir(CARDS_DIR, "CardData"))
-	all_events.assign(_load_resources_in_dir(EVENTS_DIR, "EventData"))
-	all_enemies.assign(_load_resources_in_dir(ENEMIES_DIR, "EnemyData"))
-
-func _load_resources_in_dir(path: String, expected_class: String) -> Array:
-	var results := []
-	var dir := DirAccess.open(path)
-	if dir == null:
-		push_warning("フォルダが見つかりません: %s" % path)
-		return results
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var res := load(path + "/" + file_name)
-			if res != null:
-				results.append(res)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	return results
+	# 読み込みロジックは ResourceLibrary に分離
+	all_cards.assign(ResourceLibrary.load_dir(CARDS_DIR))
+	all_events.assign(ResourceLibrary.load_dir(EVENTS_DIR))
+	all_enemies.assign(ResourceLibrary.load_dir(ENEMIES_DIR))
 
 # ---------------- ゲーム開始/リセット ----------------
 func new_game() -> void:
@@ -119,10 +104,17 @@ func start_next_battle() -> void:
 	enemy_hp = enemy_max_hp
 	player_shield = 0
 	enemy_shield = 0
+	enemy_charge = 0
 	regenerate_enemy_upcoming()
 
+func is_enemy_enraged() -> bool:
+	if current_enemy == null or current_enemy.enrage_below <= 0.0:
+		return false
+	return float(enemy_hp) <= float(enemy_max_hp) * current_enemy.enrage_below
+
 func regenerate_enemy_upcoming() -> void:
-	enemy_upcoming = [_generate_enemy_turn(current_scale), _generate_enemy_turn(current_scale), _generate_enemy_turn(current_scale)]
+	# 敵の山札から3行動を引く（山札が無ければランダム）。生成は EnemyAI に分離。
+	enemy_upcoming = EnemyAI.generate_round(current_enemy, current_scale, 3, is_enemy_enraged())
 
 func _pick_enemy(is_boss: bool) -> EnemyData:
 	var pool := all_enemies.filter(func(e): return e.is_boss == is_boss)
@@ -137,70 +129,11 @@ func _pick_enemy(is_boss: bool) -> EnemyData:
 		return dummy
 	return pool[randi() % pool.size()]
 
-func _generate_enemy_turn(scale: float) -> Dictionary:
-	var roll := randf()
-	var type_str: String
-	var value: int
-	var base_atk := int(round(current_enemy.base_attack * scale))
-	if roll < 0.6:
-		type_str = "attack"
-		value = base_atk + randi() % 4
-	elif roll < 0.85:
-		type_str = "skill"
-		value = int(round(base_atk * 0.7))
-	else:
-		type_str = "power"
-		value = int(round(base_atk * 0.9))
-	return {
-		"type": type_str,
-		"value": value,
-		"hands": _random_hand_set(),
-		"name": _enemy_turn_name(type_str),
-	}
-
-func _random_hand_set() -> Array:
-	var all := [CardData.Hand.ROCK, CardData.Hand.PAPER, CardData.Hand.SCISSORS]
-	all.shuffle()
-	var count := 1 if randf() < 0.75 else 2
-	return all.slice(0, count)
-
-func _enemy_turn_name(type_str: String) -> String:
-	match type_str:
-		"attack": return ["射撃", "斬りかかり", "殴打"][randi() % 3]
-		"skill": return ["身構え", "回避", "ガード"][randi() % 3]
-		"power": return ["雄叫び", "闘気"][randi() % 2]
-	return "行動"
-
 # ---------------- じゃんけん判定 ----------------
-## 戻り値: {player_acts: bool, enemy_acts: bool}
+## 判定ロジックは JankenRules に分離。既存の呼び出し（GameManager.resolve_hands）は
+## そのまま使えるよう、ここで薄く委譲している。
 func resolve_hands(player_hands: Array, enemy_hands: Array) -> Dictionary:
-	if player_hands.is_empty():
-		return {"player_acts": false, "enemy_acts": true}
-	var common := player_hands.filter(func(h): return enemy_hands.has(h))
-	var rem_a := player_hands.filter(func(h): return not common.has(h))
-	var rem_b := enemy_hands.filter(func(h): return not common.has(h))
-
-	if rem_a.is_empty() and rem_b.is_empty():
-		return {"player_acts": true, "enemy_acts": true} # あいこ
-	if rem_a.is_empty():
-		return {"player_acts": false, "enemy_acts": true}
-	if rem_b.is_empty():
-		return {"player_acts": true, "enemy_acts": false}
-
-	var a = rem_a[0]
-	var b = rem_b[0]
-	if _beats(a) == b:
-		return {"player_acts": true, "enemy_acts": false}
-	if _beats(b) == a:
-		return {"player_acts": false, "enemy_acts": true}
-	return {"player_acts": true, "enemy_acts": true}
-
-func _beats(hand) -> int:
-	match hand:
-		CardData.Hand.ROCK: return CardData.Hand.SCISSORS
-		CardData.Hand.SCISSORS: return CardData.Hand.PAPER
-		CardData.Hand.PAPER: return CardData.Hand.ROCK
-	return -1
+	return JankenRules.resolve_hands(player_hands, enemy_hands)
 
 # ---------------- カード効果適用 ----------------
 func apply_player_card(card: CardData) -> String:
@@ -224,19 +157,26 @@ func apply_player_card(card: CardData) -> String:
 
 func apply_enemy_turn(turn: Dictionary) -> String:
 	match turn.type:
-		"attack":
-			var dmg: int = turn.value
-			var blocked = min(player_shield, dmg)
-			player_shield -= blocked
-			dmg -= blocked
+		"attack", "pierce":
+			var pierce: bool = turn.type == "pierce"
+			var dmg: int = turn.value + enemy_charge
+			enemy_charge = 0
+			if not pierce:
+				var blocked = min(player_shield, dmg)
+				player_shield -= blocked
+				dmg -= blocked
 			hp = max(0, hp - dmg)
-			return "敵の「%s」！ あなたに%dダメージ" % [turn.name, dmg]
+			var tag := "貫通" if pierce else ""
+			return "敵の%s「%s」！ あなたに%dダメージ" % [tag, turn.name, dmg]
 		"skill":
 			enemy_shield += turn.value
 			return "敵は「%s」で%dのシールドを得た" % [turn.name, turn.value]
 		"power":
 			enemy_hp = min(enemy_max_hp, enemy_hp + turn.value)
 			return "敵は「%s」で%d回復した" % [turn.name, turn.value]
+		"charge":
+			enemy_charge += turn.value
+			return "敵は「%s」で力を溜めた（次の攻撃+%d）" % [turn.name, turn.value]
 	return ""
 
 # ---------------- イベント ----------------

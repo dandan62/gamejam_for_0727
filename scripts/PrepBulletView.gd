@@ -77,15 +77,23 @@ func setup_card(data: CardData, interactive: bool = true) -> void:
 
 func setup_enemy(turn: Dictionary) -> void:
 	card_data = null
-	var action_type := CardData.CardType.ATTACK
-	match str(turn.get("type", "attack")):
-		"skill":
-			action_type = CardData.CardType.SKILL
-		"power":
-			action_type = CardData.CardType.POWER
-	_effect_label.text = _effect_text(action_type, int(turn.get("value", 0)))
+	_effect_label.text = enemy_effect_text(str(turn.get("type", "attack")), int(turn.get("value", 0)))
 	_render_hands(turn.get("hands", []))
 	_hit_button.visible = false
+
+
+## 敵行動タイプ（文字列）→ 表示テキスト。溜め=↑ / 貫通=⚡ を追加。
+static func enemy_effect_text(type_str: String, value: int) -> String:
+	match type_str:
+		"skill":
+			return "🛡%d" % value
+		"power":
+			return "✚%d" % value
+		"charge":
+			return "↑%d" % value
+		"pierce":
+			return "⚡%d" % value
+	return "⚔%d" % value
 
 
 static func effect_text(action_type: int, value: int) -> String:

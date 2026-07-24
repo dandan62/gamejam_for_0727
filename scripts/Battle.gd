@@ -10,6 +10,8 @@ const TYPE_MAP := {
 	"attack": CardData.CardType.ATTACK,
 	"skill": CardData.CardType.SKILL,
 	"power": CardData.CardType.POWER,
+	"charge": CardData.CardType.POWER,
+	"pierce": CardData.CardType.ATTACK,
 }
 
 enum Phase { PREP, SHOWDOWN }
@@ -247,70 +249,16 @@ func _play_turn() -> void:
 	if result.player_acts and player_card:
 		var enemy_before := GameManager.enemy_hp
 		log_lines.append(GameManager.apply_player_card(player_card))
-		_spawn_player_effect(player_card, enemy_before)
+		BattleFx.spawn_player_effect(showdown_panel, enemy_hp_bar, player_slot, player_card, enemy_before)
 	if result.enemy_acts:
 		var player_before := GameManager.hp
 		log_lines.append(GameManager.apply_enemy_turn(enemy_turn))
-		_spawn_enemy_effect(enemy_turn, player_before)
+		BattleFx.spawn_enemy_effect(showdown_panel, player_hp_bar, enemy_slot, enemy_turn, player_before)
 
 	log_label.text = "\n".join(log_lines)
 
 	# ダメージ/回復のバーアニメを見せる間
 	await get_tree().create_timer(0.5).timeout
-
-# ---- ダメージ・回復のフローティング数字演出 ----
-func _spawn_player_effect(card: CardData, enemy_before: int) -> void:
-	match card.card_type:
-		CardData.CardType.ATTACK:
-			var dmg := enemy_before - GameManager.enemy_hp
-			if dmg > 0:
-				# 敵がダメージ → 敵HPバーの横に表示
-				_float_beside(enemy_hp_bar, "-%d" % dmg, Color(1.0, 0.3, 0.25))
-		CardData.CardType.SKILL:
-			_float_text(player_slot, "+%d" % card.value, Color(0.4, 0.7, 1.0))
-		CardData.CardType.POWER:
-			_float_text(player_slot, "+%d" % card.value, Color(0.4, 0.9, 0.4))
-
-func _spawn_enemy_effect(turn: Dictionary, player_before: int) -> void:
-	match turn.type:
-		"attack":
-			var dmg := player_before - GameManager.hp
-			if dmg > 0:
-				# 自分がダメージ → 自分HPバーの横に表示
-				_float_beside(player_hp_bar, "-%d" % dmg, Color(1.0, 0.3, 0.25))
-		"skill":
-			_float_text(enemy_slot, "+%d" % turn.value, Color(0.4, 0.7, 1.0))
-		"power":
-			_float_text(enemy_slot, "+%d" % turn.value, Color(0.4, 0.9, 0.4))
-
-## HPバーの右横にダメージ/効果数字を出してフェードさせる
-func _float_beside(bar: Control, text: String, color: Color) -> void:
-	var lbl := Label.new()
-	lbl.text = text
-	lbl.add_theme_font_size_override("font_size", 28)
-	lbl.add_theme_color_override("font_color", color)
-	lbl.z_index = 20
-	showdown_panel.add_child(lbl)
-	lbl.global_position = bar.global_position + Vector2(bar.size.x + 8.0, -6.0)
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(lbl, "global_position:y", lbl.global_position.y - 40.0, 0.9)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.9)
-	tw.chain().tween_callback(lbl.queue_free)
-
-func _float_text(anchor: Control, text: String, color: Color) -> void:
-	var lbl := Label.new()
-	lbl.text = text
-	lbl.add_theme_font_size_override("font_size", 32)
-	lbl.add_theme_color_override("font_color", color)
-	lbl.z_index = 20
-	showdown_panel.add_child(lbl)
-	lbl.global_position = anchor.global_position + Vector2(anchor.size.x * 0.5 - 20.0, 20.0)
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(lbl, "global_position:y", lbl.global_position.y - 70.0, 0.9)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.9)
-	tw.chain().tween_callback(lbl.queue_free)
 
 func _end_battle() -> void:
 	# ガードはバトル限りのリソース。次の画面へ持ち越さない
