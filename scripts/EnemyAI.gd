@@ -5,22 +5,22 @@ class_name EnemyAI
 ## 敵の挙動を調整したいときは、基本このファイルだけを編集すればよい。
 
 ## 1ラウンド分（count 個）の行動を生成して返す。
-## 敵に山札(deck)があればそこから引き、無ければ base_attack のランダム行動にする。
+## deck（解決済みの EnemyActionData 配列）から引く。空なら base_attack のランダム行動にする。
 ## enraged=true（発狂中）のときは攻撃系を優先的に引き、攻撃値にボーナスを加える。
-static func generate_round(enemy: EnemyData, scale: float, count: int, enraged: bool = false) -> Array:
+static func generate_round(enemy: EnemyData, deck: Array, scale: float, count: int, enraged: bool = false) -> Array:
 	var turns := []
-	if enemy.deck.is_empty():
+	if deck.is_empty():
 		for i in range(count):
 			turns.append(generate_turn(enemy, scale))
 		return turns
-	var deck := enemy.deck.duplicate()
+	var work := deck.duplicate()
 	if enraged:
-		var attacks := deck.filter(func(a): return a.is_attack())
+		var attacks := work.filter(func(a): return a.is_attack())
 		if not attacks.is_empty():
-			deck = attacks
-	deck.shuffle()
+			work = attacks
+	work.shuffle()
 	for i in range(count):
-		var action: EnemyActionData = deck[i % deck.size()]
+		var action: EnemyActionData = work[i % work.size()]
 		turns.append(_action_to_turn(action, scale, enemy, enraged))
 	return turns
 

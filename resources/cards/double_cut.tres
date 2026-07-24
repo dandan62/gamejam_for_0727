@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+id = 2
 card_name = "二段斬り"
 janken_hands = Array[int]([2])
 rarity = 0

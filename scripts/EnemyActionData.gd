@@ -7,6 +7,9 @@ class_name EnemyActionData
 ## 攻撃 / スキル=防御 / パワー=回復 / 溜め=次の攻撃強化 / 貫通=シールド無視攻撃
 enum ActionType { ATTACK, SKILL, POWER, CHARGE, PIERCE }
 
+## 行動カード固有の番号(ID)。敵の deck_ids から番号で参照する。
+@export var id: int = 0
+
 @export var action_name: String = "行動"
 
 ## じゃんけん属性（複数可）。値は CardData.Hand（0=グー / 1=パー / 2=チョキ）。

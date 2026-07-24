@@ -1,49 +1,13 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/EnemyData.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/EnemyActionData.gd" id="2"]
-
-[sub_resource type="Resource" id="barrage"]
-script = ExtResource("2")
-action_name = "乱射"
-janken_hands = Array[int]([0, 2])
-type = 0
-value = 12
-
-[sub_resource type="Resource" id="snipe"]
-script = ExtResource("2")
-action_name = "狙い撃ち"
-janken_hands = Array[int]([0])
-type = 4
-value = 10
-
-[sub_resource type="Resource" id="toughguard"]
-script = ExtResource("2")
-action_name = "タフガード"
-janken_hands = Array[int]([1, 2])
-type = 1
-value = 10
-
-[sub_resource type="Resource" id="charge"]
-script = ExtResource("2")
-action_name = "溜め"
-janken_hands = Array[int]([1])
-type = 3
-value = 8
-
-[sub_resource type="Resource" id="mend"]
-script = ExtResource("2")
-action_name = "応急"
-janken_hands = Array[int]([1])
-type = 2
-value = 8
 
 [resource]
 script = ExtResource("1")
 enemy_name = "無法者のボス"
 max_hp = 70
 is_boss = true
-deck = Array[Resource]([SubResource("barrage"), SubResource("barrage"), SubResource("snipe"), SubResource("toughguard"), SubResource("charge"), SubResource("mend")])
+deck_ids = Array[int]([8, 8, 9, 10, 11, 12])
 base_attack = 10
 enrage_below = 0.4
 enrage_bonus = 4

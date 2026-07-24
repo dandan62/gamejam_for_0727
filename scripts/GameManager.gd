@@ -12,12 +12,22 @@ const PREP_SECONDS := 10.0
 const CARDS_DIR := "res://resources/cards"
 const EVENTS_DIR := "res://resources/events"
 const ENEMIES_DIR := "res://resources/enemies"
+const ENEMY_ACTIONS_DIR := "res://resources/enemy_actions"
 
 var all_cards: Array[CardData] = []
 var all_events: Array[EventData] = []
 var all_enemies: Array[EnemyData] = []
+var all_enemy_actions: Array[EnemyActionData] = []
 
-var starter_deck_ids: Array[String] = [] # card_name のリスト。空なら all_cards からランダム構築
+## カード番号(id) → CardData テンプレート の対応表。番号でカードを引くのに使う。
+var cards_by_id: Dictionary = {}
+
+## 敵行動カード番号(id) → EnemyActionData の対応表。敵の deck_ids 解決に使う。
+var enemy_actions_by_id: Dictionary = {}
+
+## 初期デッキを番号(id)で指定する。空なら all_cards を1枚ずつで構築。
+## 例: [1, 1, 6, 10]  （斬撃×2・盾・早撃ち など）
+var starter_deck_ids: Array[int] = []
 
 # --- プレイヤー状態 ---
 var hp: int = 50
@@ -47,6 +57,58 @@ func _ready() -> void:
 	all_cards.assign(ResourceLibrary.load_dir(CARDS_DIR))
 	all_events.assign(ResourceLibrary.load_dir(EVENTS_DIR))
 	all_enemies.assign(ResourceLibrary.load_dir(ENEMIES_DIR))
+	all_enemy_actions.assign(ResourceLibrary.load_dir(ENEMY_ACTIONS_DIR))
+	_build_card_index()
+	_build_enemy_action_index()
+
+## カード番号(id) → テンプレート の対応表を作る。重複IDは警告する。
+func _build_card_index() -> void:
+	cards_by_id.clear()
+	for card in all_cards:
+		if card.id <= 0:
+			push_warning("カードに id が未設定です: %s" % card.card_name)
+			continue
+		if cards_by_id.has(card.id):
+			push_warning("カード id が重複しています: %d (%s)" % [card.id, card.card_name])
+		cards_by_id[card.id] = card
+
+## 敵行動カード番号(id) → EnemyActionData の対応表を作る。重複IDは警告する。
+func _build_enemy_action_index() -> void:
+	enemy_actions_by_id.clear()
+	for action in all_enemy_actions:
+		if action.id <= 0:
+			push_warning("敵行動カードに id が未設定です: %s" % action.action_name)
+			continue
+		if enemy_actions_by_id.has(action.id):
+			push_warning("敵行動カード id が重複しています: %d (%s)" % [action.id, action.action_name])
+		enemy_actions_by_id[action.id] = action
+
+## 番号(id)からカードの新しいインスタンス（複製）を取得する。無ければ null。
+## ※ 複製を返すのは、手札での同一参照バグ（セット済み判定が両方に効く）を避けるため。
+func card_by_id(id: int) -> CardData:
+	var template: CardData = cards_by_id.get(id)
+	if template == null:
+		return null
+	return template.duplicate()
+
+## 番号(id)から敵行動カードを取得する（テンプレート参照。敵側は変更しないので複製不要）。
+func enemy_action_by_id(id: int) -> EnemyActionData:
+	return enemy_actions_by_id.get(id)
+
+## 敵の実効デッキを解決する。deck_ids があれば番号から引き、無ければ inline の deck を使う。
+func resolve_enemy_deck(enemy: EnemyData) -> Array:
+	if enemy == null:
+		return []
+	if not enemy.deck_ids.is_empty():
+		var result: Array = []
+		for id in enemy.deck_ids:
+			var action := enemy_action_by_id(id)
+			if action != null:
+				result.append(action)
+			else:
+				push_warning("敵の deck_ids に存在しない行動カード番号: %d" % id)
+		return result
+	return enemy.deck
 
 # ---------------- ゲーム開始/リセット ----------------
 func new_game() -> void:
@@ -60,9 +122,16 @@ func new_game() -> void:
 
 func _build_starter_deck() -> Array[CardData]:
 	var deck: Array[CardData] = []
-	if all_cards.is_empty():
+	# starter_deck_ids が設定されていれば、その番号どおりにデッキを組む。
+	if not starter_deck_ids.is_empty():
+		for id in starter_deck_ids:
+			var card := card_by_id(id)
+			if card != null:
+				deck.append(card)
+			else:
+				push_warning("starter_deck_ids に存在しないカード番号: %d" % id)
 		return deck
-	# 全カードを1枚ずつ、独立したインスタンス（複製）としてデッキに入れる。
+	# 未指定なら全カードを1枚ずつ（独立インスタンス）でデッキに入れる。
 	# ※ 同じリソースを共有参照で入れると、手札に同一オブジェクトが並んで
 	#    セット済み判定が両方に効いてしまうため、必ず duplicate() する。
 	for card in all_cards:
@@ -113,8 +182,9 @@ func is_enemy_enraged() -> bool:
 	return float(enemy_hp) <= float(enemy_max_hp) * current_enemy.enrage_below
 
 func regenerate_enemy_upcoming() -> void:
-	# 敵の山札から3行動を引く（山札が無ければランダム）。生成は EnemyAI に分離。
-	enemy_upcoming = EnemyAI.generate_round(current_enemy, current_scale, 3, is_enemy_enraged())
+	# 敵の山札（番号で解決）から3行動を引く。生成ロジックは EnemyAI に分離。
+	var deck := resolve_enemy_deck(current_enemy)
+	enemy_upcoming = EnemyAI.generate_round(current_enemy, deck, current_scale, 3, is_enemy_enraged())
 
 func _pick_enemy(is_boss: bool) -> EnemyData:
 	var pool := all_enemies.filter(func(e): return e.is_boss == is_boss)
