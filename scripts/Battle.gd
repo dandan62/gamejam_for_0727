@@ -21,15 +21,10 @@ enum Phase { PREP, SHOWDOWN }
 @onready var start_battle_button: Button = %StartBattleButton
 @onready var prep_panel: Control = %PrepPanel
 @onready var showdown_panel: Control = %ShowdownPanel
+@onready var hud: Control = $HUD
 
 # --- 準備フェーズ ---
-@onready var timer_label: Label = %TimerLabel
-@onready var timer_bar: ProgressBar = %TimerBar
-@onready var forecast_row: HBoxContainer = %ForecastRow
-@onready var hand_area: Control = %HandArea
-@onready var slot_row: HBoxContainer = %SlotRow
-@onready var confirm_button: Button = %ConfirmButton
-@onready var prep_enemy_name: Label = %PrepEnemyName
+@onready var prep_ui: PrepSelectionUI = $PrepPanel/PrepViewportContainer/PrepViewport/PrepSelectionUI
 
 # --- 勝負フェーズ ---
 @onready var show_enemy_name: Label = %ShowEnemyName
@@ -54,9 +49,10 @@ var _enemy_hp_display: float = 0.0
 var _player_hp_display: float = 0.0
 
 func _ready() -> void:
-	confirm_button.pressed.connect(_on_confirm_pressed)
+	prep_ui.confirm_pressed.connect(_on_confirm_pressed)
+	prep_ui.hand_card_clicked.connect(_on_hand_card_clicked)
+	prep_ui.slot_clicked.connect(_on_slot_clicked)
 	start_battle_button.pressed.connect(_on_start_battle_pressed)
-	hand_area.resized.connect(_layout_hand)
 
 	_show_intro()
 
@@ -65,6 +61,7 @@ func _show_intro() -> void:
 	intro_panel.visible = true
 	prep_panel.visible = false
 	showdown_panel.visible = false
+	hud.visible = true
 	prep_active = false
 
 	if GameManager.current_enemy.is_boss:
@@ -81,7 +78,7 @@ func _process(delta: float) -> void:
 	# 準備フェーズのカウントダウン
 	if prep_active:
 		time_left = max(0.0, time_left - delta)
-		_update_timer_display()
+		prep_ui.update_timer(time_left, GameManager.PREP_SECONDS)
 		if time_left <= 0.0:
 			prep_active = false
 			_confirm_set()
@@ -119,166 +116,23 @@ func _hp_text(hp: int, maxhp: int, shield: int) -> String:
 func _start_prep() -> void:
 	prep_panel.visible = true
 	showdown_panel.visible = false
+	hud.visible = false
 
 	GameManager.regenerate_enemy_upcoming()
 	GameManager.prep_hand = GameManager.draw_cards(5)
 	GameManager.slots = [null, null, null]
 	confirmed = false
 
-	prep_enemy_name.text = GameManager.current_enemy.enemy_name
-	_render_forecast()
-	_render_hand()
-	_render_slots()
-
 	time_left = GameManager.PREP_SECONDS
 	prep_active = true
-	_update_timer_display()
-
-func _update_timer_display() -> void:
-	# 残り秒数（切り上げ）を大きく表示
-	var secs := int(ceil(time_left))
-	timer_label.text = "残り %d 秒" % secs
-
-	# プログレスバー
-	timer_bar.max_value = GameManager.PREP_SECONDS
-	timer_bar.value = time_left
-
-	# 残り時間に応じて色を変える（緑→黄→赤）と、終盤は点滅させる
-	var ratio := time_left / GameManager.PREP_SECONDS
-	var col: Color
-	if ratio > 0.5:
-		col = Color(0.3, 0.85, 0.3)   # 緑
-	elif ratio > 0.25:
-		col = Color(0.95, 0.8, 0.2)   # 黄
-	else:
-		col = Color(0.9, 0.25, 0.2)   # 赤
-
-	timer_label.add_theme_color_override("font_color", col)
-
-	var bar_style := timer_bar.get_theme_stylebox("fill") as StyleBoxFlat
-	if bar_style:
-		bar_style.bg_color = col
-
-	# 残り3秒以下は文字を点滅させて注意を引く
-	if time_left <= 3.0:
-		timer_label.modulate.a = 0.4 + 0.6 * abs(sin(time_left * PI * 2.0))
-	else:
-		timer_label.modulate.a = 1.0
-
-func _render_forecast() -> void:
-	for c in forecast_row.get_children():
-		c.queue_free()
-	for i in range(GameManager.enemy_upcoming.size()):
-		var turn: Dictionary = GameManager.enemy_upcoming[i]
-		var box := PanelContainer.new()
-		box.custom_minimum_size = Vector2(120, 100)
-
-		# カードと同じ背景＋角丸（枠色はじゃんけん属性で色分け）
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.16, 0.12, 0.08)
-		sb.corner_radius_top_left = 6
-		sb.corner_radius_top_right = 6
-		sb.corner_radius_bottom_left = 6
-		sb.corner_radius_bottom_right = 6
-		box.add_theme_stylebox_override("panel", sb)
-
-		var vbox := VBoxContainer.new()
-		box.add_child(vbox)
-		var title := Label.new()
-		title.text = "ターン%d" % (i + 1)
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(title)
-		var type_str: String = {"attack": "攻撃", "skill": "スキル", "power": "パワー"}[turn.type]
-		var type_label := Label.new()
-		type_label.text = "%s (%d)" % [type_str, turn.value]
-		type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(type_label)
-		var hands_label := Label.new()
-		hands_label.text = _hands_to_text(turn.hands)
-		hands_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(hands_label)
-
-		# じゃんけん属性を枠の色で表現（カードと同じ CardBorder を流用）
-		var border := CardBorder.new()
-		border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_child(border)
-		var cols: Array[Color] = []
-		for h in turn.hands:
-			cols.append(CardData.hand_color(h))
-		border.set_colors(cols)
-
-		forecast_row.add_child(box)
-
-func _hands_to_text(hands: Array) -> String:
-	var parts: Array[String] = []
-	for h in hands:
-		match h:
-			CardData.Hand.ROCK: parts.append("グー")
-			CardData.Hand.PAPER: parts.append("パー")
-			CardData.Hand.SCISSORS: parts.append("チョキ")
-	return "・".join(parts)
-
-func _render_hand() -> void:
-	for c in hand_area.get_children():
-		c.queue_free()
-	for card in GameManager.prep_hand:
-		var view: CardView = CARD_SCENE.instantiate()
-		hand_area.add_child(view)
-		view.setup(card)
-		view.set_dimmed(GameManager.slots.has(card))
-		view.clicked.connect(_on_hand_card_clicked)
-	_layout_hand()
-
-## 手札を扇状（円弧）に配置する。中央を基準に左右へ広げ、端ほど外側へ傾ける。
-func _layout_hand() -> void:
-	var views := hand_area.get_children()
-	var n := views.size()
-	if n == 0:
-		return
-
-	var card_w := 118.0
-	var card_h := 158.0
-	var area_w := hand_area.size.x
-	if area_w <= 0.0:
-		area_w = 1200.0
-	var center_x := area_w * 0.5
-
-	var step := 110.0                 # カード中心どうしの間隔（カード幅より狭く＝少し重なる）
-	var spread := deg_to_rad(24.0)    # 手札全体の開き角
-	var base_y := 2.0
-	var total := step * float(n - 1)
-
-	for i in range(n):
-		var view: Control = views[i]
-		view.pivot_offset = Vector2(card_w * 0.5, card_h)   # 下端中央を軸に回転
-		var centered := 0.0
-		if n > 1:
-			centered = float(i) / float(n - 1) - 0.5        # -0.5 .. 0.5
-		var angle := centered * spread
-		var anchor_x := center_x + centered * total
-		var dip := pow(centered * 2.0, 2.0) * 20.0          # 端ほど少し下げて弧を作る
-		var anchor_y := base_y + card_h + dip
-		view.position = Vector2(anchor_x, anchor_y) - Vector2(card_w * 0.5, card_h)
-		view.rotation = angle
-
-func _render_slots() -> void:
-	for c in slot_row.get_children():
-		c.queue_free()
-	for i in range(GameManager.slots.size()):
-		var card: CardData = GameManager.slots[i]
-		if card:
-			var view: CardView = CARD_SCENE.instantiate()
-			slot_row.add_child(view)
-			view.setup(card)
-			view.clicked.connect(func(_c): _on_slot_clicked(i))
-		else:
-			var placeholder := PanelContainer.new()
-			placeholder.custom_minimum_size = Vector2(140, 190)
-			var label := Label.new()
-			label.text = "%d番\n(空き)" % (i + 1)
-			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			placeholder.add_child(label)
-			slot_row.add_child(placeholder)
+	prep_ui.configure(
+		GameManager.prep_hand,
+		GameManager.slots,
+		GameManager.enemy_upcoming,
+		GameManager.hp,
+		GameManager.max_hp,
+		GameManager.PREP_SECONDS
+	)
 
 func _on_hand_card_clicked(card: CardData) -> void:
 	if GameManager.slots.has(card):
@@ -287,13 +141,11 @@ func _on_hand_card_clicked(card: CardData) -> void:
 	if empty_index == -1:
 		return
 	GameManager.slots[empty_index] = card
-	_render_hand()
-	_render_slots()
+	prep_ui.refresh_selection(GameManager.prep_hand, GameManager.slots)
 
 func _on_slot_clicked(index: int) -> void:
 	GameManager.slots[index] = null
-	_render_hand()
-	_render_slots()
+	prep_ui.refresh_selection(GameManager.prep_hand, GameManager.slots)
 
 func _on_confirm_pressed() -> void:
 	prep_active = false
@@ -304,7 +156,6 @@ func _confirm_set() -> void:
 		return
 	confirmed = true
 	prep_active = false
-	timer_label.modulate.a = 1.0
 	for c in GameManager.prep_hand:
 		if not GameManager.slots.has(c):
 			GameManager.discard_pile.append(c)
@@ -319,6 +170,7 @@ func _confirm_set() -> void:
 func _start_showdown() -> void:
 	prep_panel.visible = false
 	showdown_panel.visible = true
+	hud.visible = true
 
 	battle_over = false
 	show_enemy_name.text = GameManager.current_enemy.enemy_name

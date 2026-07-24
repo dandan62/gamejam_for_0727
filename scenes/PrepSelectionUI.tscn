@@ -1,0 +1,214 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/PrepSelectionUI.gd" id="1_ui"]
+[ext_resource type="Script" path="res://scripts/PrepHealthFill.gd" id="2_health"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/enemy_intent.png" id="3_enemy"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/hp_bar.png" id="4_hp"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/watch.png" id="5_watch"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/watch_needle.png" id="6_needle"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/revolver_rounds.png" id="7_rounds"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/inserted_1.png" id="8_insert1"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/inserted_2.png" id="9_insert2"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/inserted_3.png" id="10_insert3"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/belt_base.png" id="11_belt"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/confirm_button.png" id="12_confirm"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_needle"]
+atlas = ExtResource("6_needle")
+region = Rect2(276, 28, 6, 21)
+
+[node name="PrepSelectionUI" type="Control"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 1
+texture_filter = 1
+script = ExtResource("1_ui")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+color = Color(0.164706, 0.117647, 0.0784314, 1)
+
+[node name="EnemyIntentArt" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("3_enemy")
+expand_mode = 1
+
+[node name="EnemyBulletLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="HealthFrame" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("4_hp")
+expand_mode = 1
+
+[node name="HealthFill" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 52.0
+offset_right = 73.0
+offset_bottom = 116.0
+mouse_filter = 2
+script = ExtResource("2_health")
+
+[node name="HealthText" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 115.0
+offset_right = 73.0
+offset_bottom = 126.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "50/50"
+horizontal_alignment = 1
+
+[node name="WatchArt" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("5_watch")
+expand_mode = 1
+
+[node name="WatchNeedle" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 276.0
+offset_top = 28.0
+offset_right = 282.0
+offset_bottom = 49.0
+pivot_offset = Vector2(4, 19)
+mouse_filter = 2
+texture = SubResource("AtlasTexture_needle")
+expand_mode = 1
+
+[node name="RevolverRounds" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("7_rounds")
+expand_mode = 1
+
+[node name="InsertedRound1" type="TextureRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("8_insert1")
+expand_mode = 1
+
+[node name="InsertedRound2" type="TextureRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("9_insert2")
+expand_mode = 1
+
+[node name="InsertedRound3" type="TextureRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("10_insert3")
+expand_mode = 1
+
+[node name="BeltArt" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("11_belt")
+expand_mode = 1
+
+[node name="HandLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="SlotMetadataLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="SlotButton1" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 107.0
+offset_top = 100.0
+offset_right = 133.0
+offset_bottom = 126.0
+focus_mode = 0
+flat = true
+
+[node name="SlotButton2" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 147.0
+offset_top = 76.0
+offset_right = 173.0
+offset_bottom = 102.0
+focus_mode = 0
+flat = true
+
+[node name="SlotButton3" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 187.0
+offset_top = 100.0
+offset_right = 213.0
+offset_bottom = 126.0
+focus_mode = 0
+flat = true
+
+[node name="ConfirmArt" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("12_confirm")
+expand_mode = 1
+
+[node name="ConfirmButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 238.0
+offset_top = 92.0
+offset_right = 319.0
+offset_bottom = 118.0
+focus_mode = 0
+action_mode = 0
+flat = true
