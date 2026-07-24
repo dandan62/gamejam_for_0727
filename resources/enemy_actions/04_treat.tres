@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyActionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/EnemyActionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 4
+action_name = "手当て"
+janken_hands = Array[int]([1])
+type = 2
+value = 6

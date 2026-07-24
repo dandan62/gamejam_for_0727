@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1")
+id = 1
 card_name = "焼き払い"
 image = ExtResource("2")
 janken_hands = Array[int]([0, 2])

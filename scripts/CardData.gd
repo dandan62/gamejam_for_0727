@@ -9,6 +9,10 @@ enum Hand { ROCK, PAPER, SCISSORS }
 enum Rarity { COMMON, UNCOMMON, RARE }
 enum CardType { ATTACK, SKILL, POWER }
 
+## カード固有の番号(ID)。カードを番号で管理・参照するためのユニークな値。
+## デッキ構成やショップ・イベントで、この番号を使ってカードを指定できる。
+@export var id: int = 0
+
 ## カード名
 @export var card_name: String = "New Card"
 

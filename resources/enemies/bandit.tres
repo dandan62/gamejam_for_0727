@@ -1,33 +1,11 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/EnemyData.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/EnemyActionData.gd" id="2"]
-
-[sub_resource type="Resource" id="smash"]
-script = ExtResource("2")
-action_name = "殴打"
-janken_hands = Array[int]([0])
-type = 0
-value = 9
-
-[sub_resource type="Resource" id="kick"]
-script = ExtResource("2")
-action_name = "蹴り"
-janken_hands = Array[int]([2])
-type = 0
-value = 7
-
-[sub_resource type="Resource" id="growl"]
-script = ExtResource("2")
-action_name = "威嚇"
-janken_hands = Array[int]([0])
-type = 1
-value = 5
 
 [resource]
 script = ExtResource("1")
 enemy_name = "山賊"
 max_hp = 30
 is_boss = false
-deck = Array[Resource]([SubResource("smash"), SubResource("smash"), SubResource("smash"), SubResource("kick"), SubResource("kick"), SubResource("growl")])
+deck_ids = Array[int]([5, 5, 5, 6, 6, 7])
 base_attack = 8

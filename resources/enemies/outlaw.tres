@@ -1,40 +1,11 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/EnemyData.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/EnemyActionData.gd" id="2"]
-
-[sub_resource type="Resource" id="shoot"]
-script = ExtResource("2")
-action_name = "射撃"
-janken_hands = Array[int]([0])
-type = 0
-value = 7
-
-[sub_resource type="Resource" id="slash"]
-script = ExtResource("2")
-action_name = "斬りかかり"
-janken_hands = Array[int]([2])
-type = 0
-value = 8
-
-[sub_resource type="Resource" id="guard"]
-script = ExtResource("2")
-action_name = "身構え"
-janken_hands = Array[int]([1])
-type = 1
-value = 6
-
-[sub_resource type="Resource" id="heal"]
-script = ExtResource("2")
-action_name = "手当て"
-janken_hands = Array[int]([1])
-type = 2
-value = 6
 
 [resource]
 script = ExtResource("1")
 enemy_name = "ならず者"
 max_hp = 35
 is_boss = false
-deck = Array[Resource]([SubResource("shoot"), SubResource("shoot"), SubResource("slash"), SubResource("guard"), SubResource("guard"), SubResource("heal")])
+deck_ids = Array[int]([1, 1, 2, 3, 3, 4])
 base_attack = 7

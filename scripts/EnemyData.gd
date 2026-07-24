@@ -8,9 +8,14 @@ class_name EnemyData
 @export var max_hp: int = 35
 @export var is_boss: bool = false
 
-## 敵の山札。毎ラウンド、この中から行動を引いて予告する。
+## 敵の山札を行動カードの番号(id)で指定する（推奨）。
+## 例: [1, 1, 3, 4]  同じ番号を複数入れると出やすくなる。
+## resources/enemy_actions/ の EnemyActionData を番号で参照する。
+@export var deck_ids: Array[int] = []
+
+## 山札を直接リソースで持たせたい場合はこちら（deck_ids が空のとき使う）。
 ## 同じ行動を濃くしたいときは同じ EnemyActionData を複数入れる（枚数＝出やすさ）。
-## 空の場合は base_attack を使ったランダム行動にフォールバックする。
+## deck_ids も deck も空なら base_attack のランダム行動にフォールバックする。
 @export var deck: Array[EnemyActionData] = []
 
 ## デッキが空のときに使う基礎攻撃力（フォールバック用）
