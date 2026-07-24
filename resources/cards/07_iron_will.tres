@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b8e5jlyovay4x"]
+
+[ext_resource type="Script" uid="uid://dntpa2kuj0fir" path="res://scripts/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 7
+card_name = ""
+janken_hands = Array[int]([2, 1])
+rarity = 1
+card_type = 1
+cost = 2
+value = 4
+description = "{value} のシールドを得る。"

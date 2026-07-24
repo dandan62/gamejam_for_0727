@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1")
-id = 7
-card_name = "不屈の構え"
-janken_hands = Array[int]([1, 2])
-rarity = 2
-card_type = 1
-cost = 2
-value = 9
-description = "{value} のシールドを得る。"
+id = 27
+card_name = "カード27"
+janken_hands = Array[int]([0])
+rarity = 0
+card_type = 0
+cost = 1
+value = 6
+description = "{value} ダメージを与える。"

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://db4j65njmv2x0"]
+
+[ext_resource type="Script" uid="uid://dntpa2kuj0fir" path="res://scripts/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 4
+card_name = "guard"
+card_type = 1
+value = 8
+description = "HPを{value} 回復する。"

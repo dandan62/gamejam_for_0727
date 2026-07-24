@@ -25,9 +25,14 @@ var cards_by_id: Dictionary = {}
 ## 敵行動カード番号(id) → EnemyActionData の対応表。敵の deck_ids 解決に使う。
 var enemy_actions_by_id: Dictionary = {}
 
-## 初期デッキを番号(id)で指定する。空なら all_cards を1枚ずつで構築。
-## 例: [1, 1, 6, 10]  （斬撃×2・盾・早撃ち など）
-var starter_deck_ids: Array[int] = []
+## 主人公の初期(初手)デッキ。カード番号(id)を並べて指定する。ここを編集すればOK。
+## 同じ番号を複数入れるとその枚数だけデッキに入る。空にすると全カード1枚ずつになる。
+##
+## 【カード番号の対応】
+
+var starter_deck_ids: Array[int] = [
+	1, 2, 3, 4, 5, 6, 7, 8   
+]
 
 # --- プレイヤー状態 ---
 var hp: int = 50
@@ -45,6 +50,7 @@ var enemy_max_hp: int
 var player_shield: int = 0
 var enemy_shield: int = 0
 var enemy_charge: int = 0  # 敵の「溜め」。次の敵の攻撃に加算される
+var player_charge: int = 0  # プレイヤーの「溜め」。次の攻撃に加算される
 
 var prep_hand: Array[CardData] = []
 var slots: Array = [null, null, null]
@@ -174,6 +180,7 @@ func start_next_battle() -> void:
 	player_shield = 0
 	enemy_shield = 0
 	enemy_charge = 0
+	player_charge = 0
 	regenerate_enemy_upcoming()
 
 func is_enemy_enraged() -> bool:
@@ -211,7 +218,8 @@ func apply_player_card(card: CardData) -> String:
 		return ""
 	match card.card_type:
 		CardData.CardType.ATTACK:
-			var dmg := card.value
+			var dmg: int = card.value + player_charge
+			player_charge = 0
 			var blocked = min(enemy_shield, dmg)
 			enemy_shield -= blocked
 			dmg -= blocked
@@ -223,6 +231,13 @@ func apply_player_card(card: CardData) -> String:
 		CardData.CardType.POWER:
 			hp = min(max_hp, hp + card.value)
 			return "あなたは「%s」で%d回復した" % [card.card_name, card.value]
+		CardData.CardType.CHARGE:
+			player_charge += card.value
+			return "あなたは「%s」で力を溜めた（次の攻撃+%d）" % [card.card_name, card.value]
+		CardData.CardType.SHIELD_BREAK:
+			var before := enemy_shield
+			enemy_shield = int(enemy_shield / 2.0)
+			return "あなたの「%s」！ 敵のシールドを半減（%d→%d）" % [card.card_name, before, enemy_shield]
 	return ""
 
 func apply_enemy_turn(turn: Dictionary) -> String:

@@ -19,6 +19,10 @@ static func spawn_player_effect(panel: Node, enemy_hp_bar: Control, player_slot:
 			float_text(panel, player_slot, "+%d" % card.value, COLOR_SHIELD)
 		CardData.CardType.POWER:
 			float_text(panel, player_slot, "+%d" % card.value, COLOR_HEAL)
+		CardData.CardType.CHARGE:
+			float_text(panel, player_slot, "溜+%d" % card.value, Color(0.95, 0.85, 0.2))
+		CardData.CardType.SHIELD_BREAK:
+			float_beside(panel, enemy_hp_bar, "盾半減", Color(0.4, 0.85, 0.95))
 
 ## 敵の行動に応じた数字を出す
 static func spawn_enemy_effect(panel: Node, player_hp_bar: Control, enemy_slot: Control, turn: Dictionary, player_before: int) -> void:

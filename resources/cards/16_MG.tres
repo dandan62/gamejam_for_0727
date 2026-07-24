@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1")
-id = 5
-card_name = "全力斬撃"
+id = 16
+card_name = "カード16"
 janken_hands = Array[int]([0])
-rarity = 2
+rarity = 0
 card_type = 0
-cost = 2
-value = 14
-description = "{value} ダメージを与える。渾身の一撃。"
+cost = 1
+value = 6
+description = "{value} ダメージを与える。"
