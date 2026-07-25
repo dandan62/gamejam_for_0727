@@ -11,7 +11,7 @@ var _border: CardBorder
 func setup(data: CardData) -> void:
 	card_data = data
 	%Art.texture = data.image
-	%NameLabel.text = data.card_name
+	%NameLabel.text = data.display_label()
 	%TypeLabel.text = data.get_type_label()
 	%HandsLabel.text = data.get_hand_icons()
 

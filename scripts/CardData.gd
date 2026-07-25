@@ -66,6 +66,14 @@ func get_type_label() -> String:
 		CardType.SHIELD_BREAK: return "崩し"
 	return ""
 
+## 表示ラベル。プレイヤーのカードは「カード名を使わず番号のみ」で管理する方針。
+## id>0（＝プレイヤーの正規カード）なら番号を返す。
+## id=0（＝敵行動の一時表示など）は従来どおり card_name を返す。
+func display_label() -> String:
+	if id > 0:
+		return str(id)
+	return card_name
+
 ## じゃんけん属性ごとの色。グー=赤 / チョキ=黄 / パー=青
 static func hand_color(hand: int) -> Color:
 	match hand:

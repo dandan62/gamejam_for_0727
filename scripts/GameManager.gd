@@ -245,20 +245,20 @@ func apply_player_card(card: CardData) -> String:
 			enemy_shield -= blocked
 			dmg -= blocked
 			enemy_hp = max(0, enemy_hp - dmg)
-			return "あなたの「%s」！ 敵に%dダメージ" % [card.card_name, dmg]
+			return "あなたの「%s」！ 敵に%dダメージ" % [card.display_label(), dmg]
 		CardData.CardType.SKILL:
 			player_shield += card.value
-			return "あなたは「%s」で%dのシールドを得た" % [card.card_name, card.value]
+			return "あなたは「%s」で%dのシールドを得た" % [card.display_label(), card.value]
 		CardData.CardType.POWER:
 			hp = min(max_hp, hp + card.value)
-			return "あなたは「%s」で%d回復した" % [card.card_name, card.value]
+			return "あなたは「%s」で%d回復した" % [card.display_label(), card.value]
 		CardData.CardType.CHARGE:
 			player_charge += card.value
-			return "あなたは「%s」で力を溜めた（次の攻撃+%d）" % [card.card_name, card.value]
+			return "あなたは「%s」で力を溜めた（次の攻撃+%d）" % [card.display_label(), card.value]
 		CardData.CardType.SHIELD_BREAK:
 			var before := enemy_shield
 			enemy_shield = int(enemy_shield / 2.0)
-			return "あなたの「%s」！ 敵のシールドを半減（%d→%d）" % [card.card_name, before, enemy_shield]
+			return "あなたの「%s」！ 敵のシールドを半減（%d→%d）" % [card.display_label(), before, enemy_shield]
 	return ""
 
 func apply_enemy_turn(turn: Dictionary) -> String:

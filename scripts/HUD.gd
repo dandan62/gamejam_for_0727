@@ -53,11 +53,11 @@ func _open_deck() -> void:
 		c.queue_free()
 
 	var deck := GameManager.get_full_deck()
-	# 見やすいように種別→名前順で並べ替え
+	# 見やすいように種別→番号順で並べ替え（カード名は使わず番号で管理）
 	deck.sort_custom(func(a, b):
 		if a.card_type != b.card_type:
 			return a.card_type < b.card_type
-		return a.card_name < b.card_name)
+		return a.id < b.id)
 
 	deck_title.text = "山札 （%d枚）" % deck.size()
 	for card in deck:
