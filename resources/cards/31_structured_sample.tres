@@ -4,11 +4,12 @@
 
 [resource]
 script = ExtResource("1")
-id = 8
+id = 31
 card_name = ""
-janken_hands = Array[int]([2, 0])
+janken_hands = Array[int]([0, 2])
 structured = true
-action = 1
-action_size = 1
-enchant = 0
-enchant_size = 2
+action = 0
+action_size = 2
+enchant = 1
+enchant_size = 3
+description = "構造フィールド式のサンプル。攻撃・中＋エンチャントA・大。"

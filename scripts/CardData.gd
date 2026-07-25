@@ -10,6 +10,28 @@ enum Rarity { COMMON, UNCOMMON, RARE }
 ## 攻撃 / スキル=防御 / パワー=回復 / 溜め=次の攻撃強化 / シールドブレイク=ダメージ無しで敵ブロック半減
 enum CardType { ATTACK, SKILL, POWER, CHARGE, SHIELD_BREAK }
 
+# ============================================================
+# 構造フィールド式カード定義（新方式）
+#   カードを「基本行動＋大きさ」＋「エンチャント＋大きさ」＋「じゃんけんの手」で定義する。
+#   structured = true のカードは、これらから card_type / value / コードを自動生成する。
+# ============================================================
+
+## 基本行動（攻撃 / ガード / 回復）
+enum ActionKind { ATTACK, GUARD, HEAL }
+## 効果の大きさ（小=1 / 中=2 / 大=3）
+enum Size { SMALL = 1, MEDIUM = 2, LARGE = 3 }
+## エンチャント（追加効果）。効果内容は GameManager._apply_player_enchant で定義する。
+enum Enchant { NONE, A, B, C, D, E, F }
+
+## 基本行動×大きさ → 実際の効果量。ここを編集すれば大中小の値を調整できる。
+const ACTION_VALUE := {
+	ActionKind.ATTACK: { Size.SMALL: 8, Size.MEDIUM: 12, Size.LARGE: 15 },
+	ActionKind.GUARD:  { Size.SMALL: 6, Size.MEDIUM: 8,  Size.LARGE: 12 },
+	ActionKind.HEAL:   { Size.SMALL: 2, Size.MEDIUM: 3,  Size.LARGE: 5 },
+}
+## エンチャントの大きさ → 効果量（汎用）。エンチャント側で使う値。
+const ENCHANT_VALUE := { Size.SMALL: 2, Size.MEDIUM: 4, Size.LARGE: 6 }
+
 ## カード固有の番号(ID)。カードを番号で管理・参照するためのユニークな値。
 ## デッキ構成やショップ・イベントで、この番号を使ってカードを指定できる。
 @export var id: int = 0
@@ -37,6 +59,52 @@ enum CardType { ATTACK, SKILL, POWER, CHARGE, SHIELD_BREAK }
 
 ## カード説明文（{value} は value に自動置換されて表示されます）
 @export_multiline var description: String = "{value} ダメージを与える。"
+
+# ---- 構造フィールド式（structured=true で card_type/value を自動生成）----
+## true にすると下の action/size/enchant から card_type と value を自動計算する。
+@export var structured: bool = false
+## 基本行動
+@export var action: ActionKind = ActionKind.ATTACK
+## 基本行動の大きさ（小/中/大）
+@export var action_size: Size = Size.MEDIUM
+## エンチャント（追加効果）
+@export var enchant: Enchant = Enchant.NONE
+## エンチャントの大きさ（小/中/大）
+@export var enchant_size: Size = Size.MEDIUM
+
+## 構造フィールドから card_type / value を計算して反映する。
+## GameManager がカード読み込み時に呼ぶ（structured=false のカードは何もしない）。
+func rebuild() -> void:
+	if not structured:
+		return
+	card_type = _action_to_card_type(action)
+	value = ACTION_VALUE[action][action_size]
+
+func _action_to_card_type(a: int) -> CardType:
+	match a:
+		ActionKind.ATTACK: return CardType.ATTACK
+		ActionKind.GUARD: return CardType.SKILL
+		ActionKind.HEAL: return CardType.POWER
+	return CardType.ATTACK
+
+## エンチャントの効果量（NONE のときは 0）
+func get_enchant_value() -> int:
+	if enchant == Enchant.NONE:
+		return 0
+	return ENCHANT_VALUE[enchant_size]
+
+## カードの内容を表すコード文字列（例: "攻2/A3/グチ"）。
+func code() -> String:
+	if not structured:
+		return str(id)
+	var a_char: String = ["攻", "守", "回"][action]
+	var e_char: String = "-"
+	if enchant != Enchant.NONE:
+		e_char = "ABCDEF".substr(enchant - 1, 1)
+	var hands_str: String = ""
+	for h in janken_hands:
+		hands_str += ["グ", "パ", "チ"][h]
+	return "%s%d/%s%d/%s" % [a_char, action_size, e_char, enchant_size, hands_str]
 
 func get_description_text() -> String:
 	return description.replace("{value}", str(value))
@@ -70,6 +138,8 @@ func get_type_label() -> String:
 ## id>0（＝プレイヤーの正規カード）なら番号を返す。
 ## id=0（＝敵行動の一時表示など）は従来どおり card_name を返す。
 func display_label() -> String:
+	if structured:
+		return code()
 	if id > 0:
 		return str(id)
 	return card_name

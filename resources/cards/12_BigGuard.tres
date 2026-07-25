@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 12
-card_name = "カード12"
+card_name = ""
 janken_hands = Array[int]([0])
-rarity = 0
-card_type = 0
-cost = 1
-value = 6
-description = "{value} ダメージを与える。"
+structured = true
+action = 1
+action_size = 3
+enchant = 0
+enchant_size = 2
