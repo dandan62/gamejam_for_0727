@@ -394,6 +394,7 @@ func _end_battle() -> void:
 		return
 
 	var gold_reward := 40 if GameManager.current_enemy.is_boss else 15 + randi() % 10
+	gold_reward = GameManager.apply_battle_gold_bonus(gold_reward)
 	GameManager.gold += gold_reward
 
 	if GameManager.battle_index >= GameManager.TOTAL_BATTLES:

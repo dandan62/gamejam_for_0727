@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/RelicData.gd" id="1_relic"]
+[ext_resource type="Texture2D" path="res://assets/relics/buckler.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_relic")
+relic_id = &"buckler"
+display_name = "BUCKLER"
+icon = ExtResource("2_icon")
+price = 40
+description = "START EACH BATTLE WITH 5 SHIELD."

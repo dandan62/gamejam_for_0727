@@ -13,6 +13,8 @@ const CARDS_DIR := "res://resources/cards"
 const EVENTS_DIR := "res://resources/events"
 const ENEMIES_DIR := "res://resources/enemies"
 const ENEMY_ACTIONS_DIR := "res://resources/enemy_actions"
+const BUCKLER_RELIC_ID := &"buckler"
+const HORSESHOE_RELIC_ID := &"horseshoe"
 
 var all_cards: Array[CardData] = []
 var all_events: Array[EventData] = []
@@ -42,6 +44,7 @@ var battle_index: int = 0
 
 var draw_pile: Array[CardData] = []
 var discard_pile: Array[CardData] = []
+var owned_relic_ids: Array[StringName] = []
 
 # --- バトル中の状態 ---
 var current_enemy: EnemyData
@@ -123,8 +126,26 @@ func new_game() -> void:
 	gold = 20
 	battle_index = 0
 	discard_pile.clear()
+	owned_relic_ids.clear()
 	draw_pile = _build_starter_deck()
 	draw_pile.shuffle()
+
+func owns_relic(relic_id: StringName) -> bool:
+	return owned_relic_ids.has(relic_id)
+
+func add_relic(relic_id: StringName) -> bool:
+	if relic_id.is_empty() or owns_relic(relic_id):
+		return false
+	owned_relic_ids.append(relic_id)
+	return true
+
+func starting_shield_bonus() -> int:
+	return 5 if owns_relic(BUCKLER_RELIC_ID) else 0
+
+func apply_battle_gold_bonus(base_amount: int) -> int:
+	if not owns_relic(HORSESHOE_RELIC_ID):
+		return base_amount
+	return base_amount + roundi(float(base_amount) * 0.10)
 
 func _build_starter_deck() -> Array[CardData]:
 	var deck: Array[CardData] = []
@@ -177,7 +198,7 @@ func start_next_battle() -> void:
 	current_scale = 1.0 + floor(float(battle_index - 1) / float(BOSS_INTERVAL)) * 0.4
 	enemy_max_hp = int(round(current_enemy.max_hp * current_scale))
 	enemy_hp = enemy_max_hp
-	player_shield = 0
+	player_shield = starting_shield_bonus()
 	enemy_shield = 0
 	enemy_charge = 0
 	player_charge = 0

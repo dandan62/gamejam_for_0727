@@ -2,6 +2,8 @@ extends Control
 class_name PrepBulletView
 
 signal clicked(card: CardData)
+signal hover_started(card: CardData)
+signal hover_ended(card: CardData)
 
 const BULLET_TEXTURE := preload("res://assets/ui/prep/revolver_bullet.png")
 const ROCK_TEXTURE := preload("res://assets/ui/prep/rock_icon_16.png")
@@ -153,10 +155,14 @@ func _render_hands(hands: Array) -> void:
 
 func _on_mouse_entered() -> void:
 	_visual_root.position.y = -2.0
+	if card_data != null:
+		hover_started.emit(card_data)
 
 
 func _on_mouse_exited() -> void:
 	_visual_root.position.y = 0.0
+	if card_data != null:
+		hover_ended.emit(card_data)
 
 
 func _on_pressed() -> void:
