@@ -1,11 +1,14 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://db4j65njmv2x0"]
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dntpa2kuj0fir" path="res://scripts/CardData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/CardData.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 id = 4
-card_name = "guard"
-card_type = 1
-value = 8
-description = "HPを{value} 回復する。"
+card_name = ""
+janken_hands = Array[int]([0])
+structured = true
+action = 1
+action_size = 1
+enchant = 0
+enchant_size = 2

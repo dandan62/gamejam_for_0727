@@ -54,6 +54,8 @@ var player_shield: int = 0
 var enemy_shield: int = 0
 var enemy_charge: int = 0  # 敵の「溜め」。次の敵の攻撃に加算される
 var player_charge: int = 0  # プレイヤーの「溜め」。次の攻撃に加算される
+var player_damage_buff: int = 0  # バフ(D)。戦闘中、自分の攻撃ダメージに加算
+var enemy_damage_debuff: int = 0  # デバフ(E)。戦闘中、敵の攻撃ダメージから減算
 
 var prep_hand: Array[CardData] = []
 var slots: Array = [null, null, null]
@@ -74,6 +76,7 @@ func _ready() -> void:
 func _build_card_index() -> void:
 	cards_by_id.clear()
 	for card in all_cards:
+		card.rebuild()  # 構造フィールド式カードは card_type/value を自動生成
 		if card.id <= 0:
 			push_warning("カードに id が未設定です: %s" % card.card_name)
 			continue
@@ -202,6 +205,8 @@ func start_next_battle() -> void:
 	enemy_shield = 0
 	enemy_charge = 0
 	player_charge = 0
+	player_damage_buff = 0
+	enemy_damage_debuff = 0
 	regenerate_enemy_upcoming()
 
 func is_enemy_enraged() -> bool:
@@ -237,9 +242,17 @@ func resolve_hands(player_hands: Array, enemy_hands: Array) -> Dictionary:
 func apply_player_card(card: CardData) -> String:
 	if card == null:
 		return ""
+	var msg := _apply_player_base(card)
+	var enchant_msg := _apply_player_enchant(card)
+	if enchant_msg != "":
+		msg += " ＋ " + enchant_msg
+	return msg
+
+## 基本行動（攻撃/ガード/回復/溜め/崩し）の適用
+func _apply_player_base(card: CardData) -> String:
 	match card.card_type:
 		CardData.CardType.ATTACK:
-			var dmg: int = card.value + player_charge
+			var dmg: int = card.value + player_charge + player_damage_buff
 			player_charge = 0
 			var blocked = min(enemy_shield, dmg)
 			enemy_shield -= blocked
@@ -261,11 +274,44 @@ func apply_player_card(card: CardData) -> String:
 			return "あなたの「%s」！ 敵のシールドを半減（%d→%d）" % [card.display_label(), before, enemy_shield]
 	return ""
 
+## エンチャント（追加効果）の適用。A〜F の効果はここで定義する。
+## 現状は枠のみ（効果未定義）。値は card.get_enchant_value() で大中小に応じて取れる。
+func _apply_player_enchant(card: CardData) -> String:
+	if card.enchant == CardData.Enchant.NONE:
+		return ""
+	var v := card.get_enchant_value()
+	match card.enchant:
+		CardData.Enchant.A:
+			# A: なし（効果なし）
+			return ""
+		CardData.Enchant.B:
+			# B: 貯め（次の攻撃を +v 強化）
+			player_charge += v
+			return "溜め+%d" % v
+		CardData.Enchant.C:
+			# C: ガードブレイク（敵のシールドを v 減らす）
+			var before := enemy_shield
+			enemy_shield = max(0, enemy_shield - v)
+			return "敵ブロック-%d" % (before - enemy_shield)
+		CardData.Enchant.D:
+			# D: バフ（この戦闘中、自分の攻撃ダメージ +v）
+			player_damage_buff += v
+			return "与ダメ強化+%d" % v
+		CardData.Enchant.E:
+			# E: デバフ（この戦闘中、敵の攻撃ダメージ -v）
+			enemy_damage_debuff += v
+			return "敵の与ダメ-%d" % v
+		CardData.Enchant.F:
+			# F: ライフスティール（HPを v 回復）
+			hp = min(max_hp, hp + v)
+			return "ライフスティール+%d" % v
+	return ""
+
 func apply_enemy_turn(turn: Dictionary) -> String:
 	match turn.type:
 		"attack", "pierce":
 			var pierce: bool = turn.type == "pierce"
-			var dmg: int = turn.value + enemy_charge
+			var dmg: int = max(0, turn.value + enemy_charge - enemy_damage_debuff)
 			enemy_charge = 0
 			if not pierce:
 				var blocked = min(player_shield, dmg)

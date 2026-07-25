@@ -1,10 +1,14 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://btamkni2685a3"]
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dntpa2kuj0fir" path="res://scripts/CardData.gd" id="1_mcqsm"]
+[ext_resource type="Script" path="res://scripts/CardData.gd" id="1"]
 
 [resource]
-script = ExtResource("1_mcqsm")
+script = ExtResource("1")
 id = 2
-card_name = "attack"
+card_name = ""
 janken_hands = Array[int]([2])
-value = 8
+structured = true
+action = 0
+action_size = 1
+enchant = 0
+enchant_size = 2
