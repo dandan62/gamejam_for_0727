@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://uejkuobp884o" path="res://assets/ui/prep/belt_base.png" id="11_belt"]
 [ext_resource type="Texture2D" uid="uid://7ysnpm84xprn" path="res://assets/ui/prep/confirm_button.png" id="12_confirm"]
 [ext_resource type="Script" path="res://scripts/PrepShieldFill.gd" id="13_shield"]
+[ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="14_pixel_theme"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_needle"]
 atlas = ExtResource("6_needle")
@@ -21,6 +22,7 @@ region = Rect2(276, 28, 6, 21)
 [node name="PrepSelectionUI" type="Control" unique_id=2135426655]
 unique_name_in_owner = true
 texture_filter = 1
+theme = ExtResource("14_pixel_theme")
 custom_minimum_size = Vector2(320, 180)
 layout_mode = 3
 anchors_preset = 0

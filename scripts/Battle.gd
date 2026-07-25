@@ -28,6 +28,7 @@ enum Phase { PREP, SHOWDOWN }
 # --- 準備フェーズ ---
 @onready var prep_ui: PrepSelectionUI = $PrepPanel/PrepViewportContainer/PrepViewport/PrepSelectionUI
 @onready var duel_ui: DuelPhaseUI = $ShowdownPanel/ShowdownViewportContainer/ShowdownViewport/DuelPhaseUI
+@onready var duel_text_overlay: DuelTextOverlay = %DuelTextOverlay
 @onready var prep_insert_audio: AudioStreamPlayer = %PrepInsertAudio
 
 # --- 勝負フェーズ ---
@@ -121,6 +122,7 @@ func _start_prep() -> void:
 	prep_panel.visible = true
 	showdown_panel.visible = false
 	hud.visible = false
+	duel_text_overlay.clear_result()
 
 	GameManager.regenerate_enemy_upcoming()
 	GameManager.prep_hand = GameManager.draw_cards(5)
@@ -177,6 +179,7 @@ func _start_showdown() -> void:
 	prep_panel.visible = false
 	showdown_panel.visible = true
 	hud.visible = false
+	duel_text_overlay.clear_result()
 
 	battle_over = false
 	show_enemy_name.text = GameManager.current_enemy.enemy_name
@@ -217,6 +220,7 @@ func _play_turn() -> void:
 	var player_hands: Array = player_card.janken_hands if player_card else []
 	var result: Dictionary = GameManager.resolve_hands(player_hands, enemy_turn.hands)
 
+	duel_text_overlay.clear_result()
 	duel_ui.present_fight(player_card, enemy_turn)
 	await get_tree().create_timer(0.25).timeout
 	await duel_ui.play_shot_cycle()
@@ -240,7 +244,8 @@ func _play_turn() -> void:
 	else:
 		round_state = &"lost"
 
-	duel_ui.show_result(round_state, effect_text)
+	duel_ui.show_result(round_state)
+	duel_text_overlay.show_result(round_state, effect_text)
 	duel_ui.set_vitals(
 		GameManager.hp,
 		GameManager.max_hp,

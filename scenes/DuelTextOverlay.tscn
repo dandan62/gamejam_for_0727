@@ -1,0 +1,52 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/DuelTextOverlay.gd" id="1_duel_text"]
+[ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="2_pixel_theme"]
+
+[node name="DuelTextOverlay" type="Control"]
+unique_name_in_owner = true
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_pixel_theme")
+script = ExtResource("1_duel_text")
+
+[node name="RoundDraw" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 400.0
+offset_top = 156.0
+offset_right = 880.0
+offset_bottom = 228.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
+text = "ROUND DRAW!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EffectText" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 192.0
+offset_top = 236.0
+offset_right = 1088.0
+offset_bottom = 340.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 3
+theme_override_constants/line_spacing = 0
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2

@@ -11,8 +11,6 @@ const ANIMATION_FRAMES := 5
 @onready var enemy_bullet_anchor: Control = %EnemyBulletAnchor
 @onready var round_won: TextureRect = %RoundWon
 @onready var round_lost: TextureRect = %RoundLost
-@onready var round_draw: Label = %RoundDraw
-@onready var effect_label: Label = %EffectLabel
 @onready var gunshot_audio: AudioStreamPlayer = %GunshotAudio
 
 var _animation_texture: AtlasTexture
@@ -76,20 +74,14 @@ func play_shot_cycle() -> void:
 	_set_animation_frame(0)
 
 
-func show_result(state: StringName, effect_text: String) -> void:
+func show_result(state: StringName) -> void:
 	round_won.visible = state == &"won"
 	round_lost.visible = state == &"lost"
-	round_draw.visible = state == &"draw"
-	effect_label.text = effect_text
-	effect_label.visible = not effect_text.is_empty()
 
 
 func clear_result() -> void:
 	round_won.visible = false
 	round_lost.visible = false
-	round_draw.visible = false
-	effect_label.visible = false
-	effect_label.text = ""
 
 
 func set_vitals(
