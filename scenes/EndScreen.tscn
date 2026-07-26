@@ -1,46 +1,129 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/EndScreen.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/EndScreen.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/end/game_over.png" id="2_game_over"]
+[ext_resource type="Texture2D" path="res://assets/ui/end/box_return_to_title.png" id="3_return"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/title_theme.mp3" id="4_title_music"]
+[ext_resource type="Script" path="res://scripts/LoopingTitleMusic.gd" id="5_title_music_script"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
 [node name="EndScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource("1")
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="TitleMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("4_title_music")
+volume_db = -10.0
+script = ExtResource("5_title_music_script")
+
+[node name="WinPanel" type="Control" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="WinPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.106, 0.078, 0.047, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="WinPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
+[node name="VBox" type="VBoxContainer" parent="WinPanel/Center"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="TitleLabel" type="Label" parent="Center/VBox"]
+[node name="TitleLabel" type="Label" parent="WinPanel/Center/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 32
 text = "結果"
 
-[node name="DescLabel" type="Label" parent="Center/VBox"]
+[node name="DescLabel" type="Label" parent="WinPanel/Center/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 autowrap_mode = 2
 text = ""
 
-[node name="RestartButton" type="Button" parent="Center/VBox"]
+[node name="RestartButton" type="Button" parent="WinPanel/Center/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "最初から"
+
+[node name="LossPanel" type="SubViewportContainer" parent="."]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 4
+
+[node name="LossViewport" type="SubViewport" parent="LossPanel"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
+
+[node name="LossUI" type="Control" parent="LossPanel/LossViewport"]
+texture_filter = 1
+custom_minimum_size = Vector2(320, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+
+[node name="Background" type="TextureRect" parent="LossPanel/LossViewport/LossUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("2_game_over")
+expand_mode = 1
+
+[node name="ReturnArt" type="TextureRect" parent="LossPanel/LossViewport/LossUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("3_return")
+expand_mode = 1
+
+[node name="ReturnButton" type="Button" parent="LossPanel/LossViewport/LossUI"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 76.0
+offset_top = 145.0
+offset_right = 244.0
+offset_bottom = 176.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+flat = true

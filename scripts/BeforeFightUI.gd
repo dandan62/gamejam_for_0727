@@ -15,6 +15,12 @@ const IMPACT_FRAME_SECONDS := 0.1
 const HOLE_LIFETIME_SECONDS := 15.0
 const HOLE_FADE_SECONDS := 3.0
 const MAX_ACTIVE_HOLES := 64
+const ENTRANCE_SECONDS := 0.68
+const BOARD_START_Y := -116.0
+const READY_START_Y := 56.0
+const DECK_START_X := 56.0
+const READY_ENTRANCE_DELAY := 0.08
+const DECK_ENTRANCE_DELAY := 0.16
 
 @onready var health_fill: PrepHealthFill = %HealthFill
 @onready var shield_fill: PrepShieldFill = %ShieldFill
@@ -29,8 +35,12 @@ const MAX_ACTIVE_HOLES := 64
 @onready var deck_grid: GridContainer = %DeckGrid
 @onready var board_click_area: Control = %BoardClickArea
 @onready var bullet_hole_layer: Control = %BulletHoleLayer
+@onready var board_entrance_group: Control = %BoardEntranceGroup
+@onready var deck_entrance_group: Control = %DeckEntranceGroup
+@onready var ready_entrance_group: Control = %ReadyEntranceGroup
 
 var _active_holes: Array[TextureRect] = []
+var _entrance_running := false
 
 
 func _ready() -> void:
@@ -46,6 +56,7 @@ func _ready() -> void:
 	ready_button.mouse_exited.connect(_on_art_unhovered.bind(ready_art))
 	board_click_area.gui_input.connect(_on_board_click_area_gui_input)
 	deck_overlay.visible = false
+	_play_entrance()
 
 
 func configure(
@@ -98,7 +109,65 @@ func _close_deck() -> void:
 	deck_overlay.visible = false
 
 
+func _play_entrance() -> void:
+	_entrance_running = true
+	deck_button.disabled = true
+	ready_button.disabled = true
+	board_click_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	board_entrance_group.position.y = BOARD_START_Y
+	ready_entrance_group.position.y = READY_START_Y
+	deck_entrance_group.position.x = DECK_START_X
+
+	var entrance := create_tween()
+	entrance.set_parallel(true)
+	entrance.tween_method(
+		_set_board_entrance_y,
+		BOARD_START_Y,
+		0.0,
+		ENTRANCE_SECONDS
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	entrance.tween_method(
+		_set_ready_entrance_y,
+		READY_START_Y,
+		0.0,
+		ENTRANCE_SECONDS - READY_ENTRANCE_DELAY
+	).set_delay(READY_ENTRANCE_DELAY).set_trans(
+		Tween.TRANS_CUBIC
+	).set_ease(Tween.EASE_OUT)
+	entrance.tween_method(
+		_set_deck_entrance_x,
+		DECK_START_X,
+		0.0,
+		ENTRANCE_SECONDS - DECK_ENTRANCE_DELAY
+	).set_delay(DECK_ENTRANCE_DELAY).set_trans(
+		Tween.TRANS_CUBIC
+	).set_ease(Tween.EASE_OUT)
+	await entrance.finished
+
+	_set_board_entrance_y(0.0)
+	_set_ready_entrance_y(0.0)
+	_set_deck_entrance_x(0.0)
+	_entrance_running = false
+	deck_button.disabled = false
+	ready_button.disabled = false
+	board_click_area.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func _set_board_entrance_y(value: float) -> void:
+	board_entrance_group.position.y = roundf(value)
+
+
+func _set_ready_entrance_y(value: float) -> void:
+	ready_entrance_group.position.y = roundf(value)
+
+
+func _set_deck_entrance_x(value: float) -> void:
+	deck_entrance_group.position.x = roundf(value)
+
+
 func _on_ready_pressed() -> void:
+	if _entrance_running:
+		return
 	gunshot_requested.emit()
 	ready_pressed.emit()
 

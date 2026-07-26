@@ -14,6 +14,7 @@ const PERSISTENT_PRECOMBAT_MUSIC_NAME := "PersistentPrecombatMusic"
 @onready var hurry_button: Button = %HurryButton
 @onready var rest_text: Label = %RestText
 @onready var hurry_text: Label = %HurryText
+@onready var branch_gold_label: Label = %BranchGoldLabel
 @onready var branch_music: AudioStreamPlayer = %BranchMusic
 
 
@@ -33,6 +34,7 @@ func _ready() -> void:
 	rest_button.mouse_exited.connect(_on_choice_unhovered.bind(rest_text))
 	hurry_button.mouse_entered.connect(_on_choice_hovered.bind(hurry_text))
 	hurry_button.mouse_exited.connect(_on_choice_unhovered.bind(hurry_text))
+	branch_gold_label.text = str(GameManager.gold)
 	_show_branch()
 
 

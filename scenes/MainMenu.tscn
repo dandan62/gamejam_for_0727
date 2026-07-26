@@ -1,14 +1,28 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/MainMenu.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/ui/title/title_background.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/title_background_color.png" id="2_background"]
 [ext_resource type="Texture2D" path="res://assets/ui/title/title_board.png" id="3_board"]
-[ext_resource type="Texture2D" path="res://assets/ui/title/button_start.png" id="4_start"]
-[ext_resource type="Texture2D" path="res://assets/ui/title/button_quit.png" id="5_quit"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/title_button_start.png" id="4_start"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/title_button_quit.png" id="5_quit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/revolver_gunshot.wav" id="6_gunshot"]
 [ext_resource type="AudioStream" path="res://assets/audio/music/title_theme.mp3" id="7_music"]
+[ext_resource type="Script" path="res://scripts/LoopingTitleMusic.gd" id="8_title_music_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/title_curtain.png" id="9_curtain"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/skip_button.png" id="10_skip"]
+[ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="11_pixel_theme"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_left_curtain"]
+atlas = ExtResource("9_curtain")
+region = Rect2(0, 0, 160, 180)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_right_curtain"]
+atlas = ExtResource("9_curtain")
+region = Rect2(160, 0, 160, 180)
+filter_clip = true
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -29,6 +43,7 @@ max_polyphony = 8
 unique_name_in_owner = true
 stream = ExtResource("7_music")
 volume_db = -10.0
+script = ExtResource("8_title_music_script")
 
 [node name="MenuViewportContainer" type="SubViewportContainer" parent="."]
 texture_filter = 1
@@ -62,7 +77,33 @@ mouse_filter = 2
 texture = ExtResource("2_background")
 expand_mode = 1
 
-[node name="TitleBoard" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu"]
+[node name="LeftCurtain" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 160.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = SubResource("AtlasTexture_left_curtain")
+expand_mode = 1
+
+[node name="RightCurtain" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 160.0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = SubResource("AtlasTexture_right_curtain")
+expand_mode = 1
+
+[node name="TitleBoardGroup" type="Control" parent="MenuViewportContainer/MenuViewport/Menu"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="TitleBoard" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu/TitleBoardGroup"]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -70,14 +111,14 @@ mouse_filter = 2
 texture = ExtResource("3_board")
 expand_mode = 1
 
-[node name="BulletHoleLayer" type="Control" parent="MenuViewportContainer/MenuViewport/Menu"]
+[node name="BulletHoleLayer" type="Control" parent="MenuViewportContainer/MenuViewport/Menu/TitleBoardGroup"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 
-[node name="BoardClickArea" type="Control" parent="MenuViewportContainer/MenuViewport/Menu"]
+[node name="BoardClickArea" type="Control" parent="MenuViewportContainer/MenuViewport/Menu/TitleBoardGroup"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 59.0
@@ -87,6 +128,7 @@ offset_bottom = 116.0
 mouse_default_cursor_shape = 2
 
 [node name="StartArt" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -95,6 +137,7 @@ texture = ExtResource("4_start")
 expand_mode = 1
 
 [node name="QuitArt" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
@@ -130,6 +173,59 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
 flat = true
 
+[node name="MonologueLayer" type="Control" parent="MenuViewportContainer/MenuViewport/Menu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 1
+
+[node name="MonologueText" type="RichTextLabel" parent="MenuViewportContainer/MenuViewport/Menu/MonologueLayer"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 22.0
+offset_top = 62.0
+offset_right = 298.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme = ExtResource("11_pixel_theme")
+theme_override_colors/default_color = Color(0.96, 0.91, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.035, 0.02, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/normal_font_size = 8
+theme_override_font_sizes/bold_font_size = 8
+bbcode_enabled = true
+text = "[center]They said he was the sharpest shooter in the Wild West.[/center]"
+fit_content = false
+scroll_active = false
+autowrap_mode = 2
+
+[node name="SkipArt" type="TextureRect" parent="MenuViewportContainer/MenuViewport/Menu/MonologueLayer"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("10_skip")
+expand_mode = 1
+
+[node name="SkipButton" type="Button" parent="MenuViewportContainer/MenuViewport/Menu/MonologueLayer"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 249.0
+offset_top = 149.0
+offset_right = 314.0
+offset_bottom = 177.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+flat = true
+
 [connection signal="pressed" from="MenuViewportContainer/MenuViewport/Menu/StartButton" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="MenuViewportContainer/MenuViewport/Menu/QuitButton" to="." method="_on_quit_pressed"]
-[connection signal="gui_input" from="MenuViewportContainer/MenuViewport/Menu/BoardClickArea" to="." method="_on_board_click_area_gui_input"]
+[connection signal="gui_input" from="MenuViewportContainer/MenuViewport/Menu/TitleBoardGroup/BoardClickArea" to="." method="_on_board_click_area_gui_input"]
+[connection signal="pressed" from="MenuViewportContainer/MenuViewport/Menu/MonologueLayer/SkipButton" to="." method="_on_skip_intro_pressed"]

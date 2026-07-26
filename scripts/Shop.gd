@@ -1,21 +1,39 @@
 extends Control
 
 const STOCK_COUNT := 4
+const RELIC_STOCK_COUNT := 2
+const RELIC_PRICE_MIN := 90
+const RELIC_PRICE_MAX := 120
 const WELCOME_TEXT := "Welcome in!\nHow may I help you?"
 const LEAVE_HOVER_COLOR := Color(1.2, 1.12, 0.9, 1.0)
 const BUCKLER := preload("res://resources/relics/buckler.tres")
 const HORSESHOE := preload("res://resources/relics/horseshoe.tres")
-const RELIC_STOCK := [BUCKLER, HORSESHOE]
+const DRAGON_FRUIT := preload("res://resources/relics/dragon_fruit.tres")
+const TOOTH_NECKLACE := preload("res://resources/relics/tooth_necklace.tres")
+const VODKA := preload("res://resources/relics/vodka.tres")
+const BULLET_BELT := preload("res://resources/relics/bullet_belt.tres")
+const SHERIFF_BADGE := preload("res://resources/relics/sheriff_badge.tres")
+const LUCKY_COIN := preload("res://resources/relics/lucky_coin.tres")
+const RELIC_POOL := [
+	BUCKLER,
+	HORSESHOE,
+	DRAGON_FRUIT,
+	TOOTH_NECKLACE,
+	VODKA,
+	BULLET_BELT,
+	SHERIFF_BADGE,
+	LUCKY_COIN,
+]
 const BULLET_POSITIONS := [
 	Vector2(191, 4),
 	Vector2(227, 4),
 	Vector2(191, 54),
 	Vector2(227, 54),
 ]
-const RELIC_POSITIONS := {
-	&"buckler": Vector2(258, 30),
-	&"horseshoe": Vector2(260, 62),
-}
+const RELIC_SLOT_BOTTOM_CENTERS := [
+	Vector2(275, 42),
+	Vector2(276, 94),
+]
 
 @onready var item_layer: Control = %ItemLayer
 @onready var dialogue_text: Label = %DialogueText
@@ -65,23 +83,29 @@ func _build_stock() -> void:
 			"sold": false,
 		})
 
-	for relic_resource in RELIC_STOCK:
-		var relic := relic_resource as RelicData
+	var relic_pool := RELIC_POOL.filter(
+		func(relic_resource: RelicData) -> bool:
+			return not GameManager.owns_relic(relic_resource.relic_id)
+	)
+	relic_pool.shuffle()
+	for index in range(min(RELIC_STOCK_COUNT, relic_pool.size())):
+		var relic := relic_pool[index] as RelicData
 		relic_stock.append({
 			"relic": relic,
-			"sold": GameManager.owns_relic(relic.relic_id),
+			"price": randi_range(RELIC_PRICE_MIN, RELIC_PRICE_MAX),
+			"sold": false,
 		})
 
 
 func _price_for(card: CardData) -> int:
 	match card.rarity:
 		CardData.Rarity.COMMON:
-			return randi_range(30, 40)
+			return randi_range(25, 35)
 		CardData.Rarity.UNCOMMON:
-			return randi_range(60, 70)
+			return randi_range(50, 65)
 		CardData.Rarity.RARE:
-			return randi_range(120, 130)
-	return randi_range(30, 40)
+			return randi_range(85, 100)
+	return randi_range(25, 35)
 
 
 func _render_stock() -> void:
@@ -94,10 +118,11 @@ func _render_stock() -> void:
 			continue
 		_add_card_view(index, item)
 
-	for item in relic_stock:
+	for index in range(relic_stock.size()):
+		var item := relic_stock[index]
 		if bool(item.get("sold", false)):
 			continue
-		_add_relic_view(item)
+		_add_relic_view(index, item)
 
 	gold_label.text = str(GameManager.gold)
 
@@ -118,11 +143,16 @@ func _add_card_view(index: int, item: Dictionary) -> void:
 	view.hover_ended.connect(_on_card_exited.bind(item))
 
 
-func _add_relic_view(item: Dictionary) -> void:
+func _add_relic_view(index: int, item: Dictionary) -> void:
 	var relic := item.get("relic") as RelicData
-	if relic == null or relic.icon == null:
+	if relic == null or relic.icon == null or index >= RELIC_SLOT_BOTTOM_CENTERS.size():
 		return
-	var icon_position: Vector2 = RELIC_POSITIONS.get(relic.relic_id, Vector2.ZERO)
+	var icon_size := relic.icon.get_size()
+	var slot_center: Vector2 = RELIC_SLOT_BOTTOM_CENTERS[index]
+	var icon_position := Vector2(
+		floor(slot_center.x - icon_size.x * 0.5),
+		slot_center.y - icon_size.y
+	)
 	var padding := Vector2(3, 4)
 
 	var hit_root := Control.new()
@@ -198,10 +228,11 @@ func _on_relic_hovered(item: Dictionary, visual: TextureRect, rest_y: float) -> 
 		return
 	visual.position.y = rest_y - 2.0
 	_hovered_key = relic.relic_id
+	var price := int(item.get("price", 0))
 	dialogue_text.text = "%s\n%s\nPRICE %dG" % [
 		relic.display_name,
 		relic.description,
-		relic.price,
+		price,
 	]
 
 
@@ -218,11 +249,12 @@ func _on_relic_pressed(item: Dictionary) -> void:
 	var relic := item.get("relic") as RelicData
 	if relic == null:
 		return
-	if GameManager.gold < relic.price:
+	var price := int(item.get("price", 0))
+	if GameManager.gold < price:
 		dialogue_text.text = "NOT ENOUGH GOLD."
 		return
 
-	GameManager.gold -= relic.price
+	GameManager.gold -= price
 	GameManager.add_relic(relic.relic_id)
 	item["sold"] = true
 	_hovered_key = &""

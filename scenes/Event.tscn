@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/Event.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/ui/branch/branch_background.png" id="2_background"]
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/rest/rest.png" id="7_rest_background"]
 [ext_resource type="Texture2D" path="res://assets/ui/rest/rest_dialogue_box.png" id="8_rest_dialogue"]
 [ext_resource type="AudioStream" path="res://assets/audio/music/precombat_theme.mp3" id="9_branch_music"]
+[ext_resource type="Texture2D" path="res://assets/ui/shop/gold_ui_box.png" id="10_gold_box"]
+[ext_resource type="Texture2D" path="res://assets/ui/shop/gold.png" id="11_gold_icon"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rest_button"]
 
@@ -102,6 +104,38 @@ theme_override_colors/font_outline_color = Color(0.08, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 8
 text = "Which path would you take?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GoldBoxArt" type="TextureRect" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("10_gold_box")
+expand_mode = 1
+
+[node name="GoldIconArt" type="TextureRect" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("11_gold_icon")
+expand_mode = 1
+
+[node name="BranchGoldLabel" type="Label" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 25.0
+offset_top = 8.0
+offset_right = 59.0
+offset_bottom = 26.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 

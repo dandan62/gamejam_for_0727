@@ -8,5 +8,5 @@ script = ExtResource("1_relic")
 relic_id = &"buckler"
 display_name = "BUCKLER"
 icon = ExtResource("2_icon")
-price = 40
-description = "START EACH BATTLE WITH 5 SHIELD."
+price = 90
+description = "START EACH BATTLE\nWITH 10 SHIELD."

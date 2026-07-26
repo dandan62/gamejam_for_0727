@@ -148,7 +148,7 @@ func _start_prep() -> void:
 	duel_text_overlay.clear_result()
 
 	GameManager.regenerate_enemy_upcoming()
-	GameManager.prep_hand = GameManager.draw_cards(5)
+	GameManager.prep_hand = GameManager.draw_cards(GameManager.prep_hand_size())
 	GameManager.slots = [null, null, null]
 	confirmed = false
 
@@ -251,6 +251,9 @@ func _play_turn() -> void:
 	if player_card != null and player_card.card_type == CardData.CardType.ATTACK:
 		player_display_value = GameManager.preview_player_attack_damage(player_card, turn_index)
 		player_value_boosted = player_display_value > player_card.value
+	elif player_card != null and player_card.card_type == CardData.CardType.SKILL:
+		player_display_value = player_card.value + GameManager.player_block_bonus()
+		player_value_boosted = player_display_value > player_card.value
 	duel_ui.present_fight(
 		player_card,
 		enemy_turn,
@@ -327,6 +330,8 @@ func _apply_and_describe_enemy_turn(turn: Dictionary) -> String:
 	var enemy_hp_before := GameManager.enemy_hp
 	var enemy_shield_before := GameManager.enemy_shield
 	GameManager.apply_enemy_turn(turn, turn_index)
+	if GameManager.last_enemy_attack_dodged:
+		return "Dodged!"
 
 	match str(turn.get("type", "")):
 		"attack":
@@ -426,8 +431,9 @@ func _end_battle() -> void:
 		get_tree().change_scene_to_file("res://scenes/EndScreen.tscn")
 		return
 
-	var gold_reward := 40 if GameManager.current_enemy.is_boss else 15 + randi() % 10
-	gold_reward = GameManager.apply_battle_gold_bonus(gold_reward)
+	var gold_reward := GameManager.roll_battle_gold_reward(
+		GameManager.current_enemy.is_boss
+	)
 	GameManager.gold += gold_reward
 
 	if GameManager.battle_index >= GameManager.TOTAL_BATTLES:

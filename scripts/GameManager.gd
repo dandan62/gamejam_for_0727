@@ -15,6 +15,13 @@ const ENEMIES_DIR := "res://resources/enemies"
 const ENEMY_ACTIONS_DIR := "res://resources/enemy_actions"
 const BUCKLER_RELIC_ID := &"buckler"
 const HORSESHOE_RELIC_ID := &"horseshoe"
+const DRAGON_FRUIT_RELIC_ID := &"dragon_fruit"
+const TOOTH_NECKLACE_RELIC_ID := &"tooth_necklace"
+const VODKA_RELIC_ID := &"vodka"
+const BULLET_BELT_RELIC_ID := &"bullet_belt"
+const SHERIFF_BADGE_RELIC_ID := &"sheriff_badge"
+const LUCKY_COIN_RELIC_ID := &"lucky_coin"
+const LUCKY_COIN_DODGE_CHANCE := 0.25
 
 var all_cards: Array[CardData] = []
 var all_events: Array[EventData] = []
@@ -61,6 +68,8 @@ var prep_hand: Array[CardData] = []
 var slots: Array = [null, null, null]
 var enemy_upcoming: Array = [] # 3要素: {type, value, hands, name}
 var game_over_reason: String = "" # "win" / "lose"
+
+var last_enemy_attack_dodged := false
 
 func _ready() -> void:
 	# 読み込みロジックは ResourceLibrary に分離
@@ -127,8 +136,22 @@ func new_game() -> void:
 	max_hp = 50
 	gold = 20
 	battle_index = 0
+	game_over_reason = ""
+	current_enemy = null
+	enemy_hp = 0
+	enemy_max_hp = 0
+	player_shield = 0
+	enemy_shield = 0
+	player_charge = 0
+	player_damage_buff = 0
+	enemy_damage_debuff = 0
+	enemy_attack_growth = 0
+	prep_hand.clear()
+	slots = [null, null, null]
+	enemy_upcoming.clear()
 	discard_pile.clear()
 	owned_relic_ids.clear()
+	last_enemy_attack_dodged = false
 	draw_pile = _build_starter_deck()
 	draw_pile.shuffle()
 
@@ -139,15 +162,37 @@ func add_relic(relic_id: StringName) -> bool:
 	if relic_id.is_empty() or owns_relic(relic_id):
 		return false
 	owned_relic_ids.append(relic_id)
+	if relic_id == DRAGON_FRUIT_RELIC_ID:
+		max_hp += 15
+		hp = min(max_hp, hp + 15)
 	return true
 
 func starting_shield_bonus() -> int:
-	return 5 if owns_relic(BUCKLER_RELIC_ID) else 0
+	return 10 if owns_relic(BUCKLER_RELIC_ID) else 0
 
 func apply_battle_gold_bonus(base_amount: int) -> int:
 	if not owns_relic(HORSESHOE_RELIC_ID):
 		return base_amount
-	return base_amount + roundi(float(base_amount) * 0.10)
+	return base_amount + roundi(float(base_amount) * 0.40)
+
+func roll_battle_gold_reward(is_boss: bool) -> int:
+	var base_amount := randi_range(90, 100) if is_boss else randi_range(35, 45)
+	return apply_battle_gold_bonus(base_amount)
+
+func player_attack_damage_bonus() -> int:
+	return 3 if owns_relic(TOOTH_NECKLACE_RELIC_ID) else 0
+
+func incoming_damage_reduction() -> int:
+	return 3 if owns_relic(VODKA_RELIC_ID) else 0
+
+func player_block_bonus() -> int:
+	return 2 if owns_relic(SHERIFF_BADGE_RELIC_ID) else 0
+
+func prep_hand_size() -> int:
+	return 6 if owns_relic(BULLET_BELT_RELIC_ID) else 5
+
+func roll_lucky_coin_dodge() -> bool:
+	return owns_relic(LUCKY_COIN_RELIC_ID) and randf() < LUCKY_COIN_DODGE_CHANCE
 
 func _build_starter_deck() -> Array[CardData]:
 	var deck: Array[CardData] = []
@@ -205,6 +250,7 @@ func start_next_battle() -> void:
 	player_damage_buff = 0
 	enemy_damage_debuff = 0
 	enemy_attack_growth = 0
+	last_enemy_attack_dodged = false
 	regenerate_enemy_upcoming()
 
 func regenerate_enemy_upcoming() -> void:
@@ -252,7 +298,7 @@ func preview_enemy_attack_damage(
 		and slot_index == 0
 	):
 		damage += int(turn.get("enchant_value", 0))
-	return damage
+	return max(0, damage - incoming_damage_reduction())
 
 
 func record_enemy_shot() -> void:
@@ -302,7 +348,13 @@ func preview_player_attack_damage(
 	var opening_bonus := 0
 	if card.enchant == CardData.Enchant.B and slot_index == 0:
 		opening_bonus = card.get_enchant_value()
-	return card.value + resolved_buff + resolved_charge + opening_bonus
+	return (
+		card.value
+		+ player_attack_damage_bonus()
+		+ resolved_buff
+		+ resolved_charge
+		+ opening_bonus
+	)
 
 
 func apply_player_card(card: CardData, slot_index: int = -1) -> String:
@@ -352,7 +404,13 @@ func apply_player_card(card: CardData, slot_index: int = -1) -> String:
 func _apply_player_base(card: CardData, attack_bonus: int = 0) -> String:
 	match card.card_type:
 		CardData.CardType.ATTACK:
-			var dmg: int = card.value + player_charge + player_damage_buff + attack_bonus
+			var dmg: int = (
+				card.value
+				+ player_attack_damage_bonus()
+				+ player_charge
+				+ player_damage_buff
+				+ attack_bonus
+			)
 			player_charge = 0
 			var blocked = min(enemy_shield, dmg)
 			enemy_shield -= blocked
@@ -360,8 +418,9 @@ func _apply_player_base(card: CardData, attack_bonus: int = 0) -> String:
 			enemy_hp = max(0, enemy_hp - dmg)
 			return "あなたの「%s」！ 敵に%dダメージ" % [card.display_label(), dmg]
 		CardData.CardType.SKILL:
-			player_shield += card.value
-			return "あなたは「%s」で%dのシールドを得た" % [card.display_label(), card.value]
+			var block := card.value + player_block_bonus()
+			player_shield += block
+			return "あなたは「%s」で%dのシールドを得た" % [card.display_label(), block]
 		CardData.CardType.POWER:
 			hp = min(max_hp, hp + card.value)
 			return "あなたは「%s」で%d回復した" % [card.display_label(), card.value]
@@ -399,8 +458,12 @@ func _remove_next_enemy_hands(slot_index: int, amount: int) -> int:
 	return removed
 
 func apply_enemy_turn(turn: Dictionary, slot_index: int = -1) -> String:
+	last_enemy_attack_dodged = false
 	match turn.type:
 		"attack":
+			if roll_lucky_coin_dodge():
+				last_enemy_attack_dodged = true
+				return "Dodged!"
 			if int(turn.get("enchant", CardData.Enchant.NONE)) == CardData.Enchant.C:
 				_damage_player_shield(int(turn.get("enchant_value", 0)))
 			var dmg: int = max(

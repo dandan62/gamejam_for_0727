@@ -12,6 +12,14 @@ const BELT_BULLET_POSITIONS := [
 	Vector2(183, 130),
 	Vector2(215, 130),
 ]
+const EXPANDED_BELT_BULLET_POSITIONS := [
+	Vector2(71, 130),
+	Vector2(103, 130),
+	Vector2(135, 130),
+	Vector2(167, 130),
+	Vector2(199, 130),
+	Vector2(231, 130),
+]
 const ENEMY_BULLET_POSITIONS := [
 	Vector2(111, 10),
 	Vector2(151, 10),
@@ -138,13 +146,18 @@ func _render_enemy_intents() -> void:
 
 func _render_hand() -> void:
 	_clear_layer(hand_layer)
-	for index in range(min(_hand.size(), BELT_BULLET_POSITIONS.size())):
+	var bullet_positions := (
+		EXPANDED_BELT_BULLET_POSITIONS
+		if _hand.size() > BELT_BULLET_POSITIONS.size()
+		else BELT_BULLET_POSITIONS
+	)
+	for index in range(min(_hand.size(), bullet_positions.size())):
 		var card := _hand[index]
 		if _slots.has(card):
 			continue
 		var view := PrepBulletView.new()
 		hand_layer.add_child(view)
-		view.position = BELT_BULLET_POSITIONS[index] - Vector2(15, 0)
+		view.position = bullet_positions[index] - Vector2(15, 0)
 		var display_value := card.value
 		var boosted := false
 		if card.card_type == CardData.CardType.ATTACK:
@@ -154,6 +167,9 @@ func _render_hand() -> void:
 				_player_damage_buff,
 				0
 			)
+			boosted = display_value > card.value
+		elif card.card_type == CardData.CardType.SKILL:
+			display_value = card.value + GameManager.player_block_bonus()
 			boosted = display_value > card.value
 		view.setup_card(
 			card,
@@ -186,6 +202,9 @@ func _render_slots() -> void:
 			)
 			boosted = display_value > card.value
 			projected_charge = 0
+		elif card.card_type == CardData.CardType.SKILL:
+			display_value = card.value + GameManager.player_block_bonus()
+			boosted = display_value > card.value
 		_add_slot_effect(index, card, display_value, boosted)
 		_add_slot_hands(index, card.janken_hands)
 		if card.enchant == CardData.Enchant.D:

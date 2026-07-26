@@ -1,14 +1,15 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/BeforeFightUI.gd" id="1_ui"]
 [ext_resource type="Script" path="res://scripts/PrepHealthFill.gd" id="2_health"]
 [ext_resource type="Script" path="res://scripts/PrepShieldFill.gd" id="3_shield"]
-[ext_resource type="Texture2D" path="res://assets/ui/before_fight/before_fight.png" id="4_background"]
-[ext_resource type="Texture2D" path="res://assets/ui/before_fight/deck_icon.png" id="5_deck"]
-[ext_resource type="Texture2D" path="res://assets/ui/before_fight/ready_button.png" id="6_ready"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/title_background_color.png" id="4_background"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/before_fight_deck_icon.png" id="5_deck"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/before_fight_ready_button.png" id="6_ready"]
 [ext_resource type="Texture2D" path="res://assets/ui/before_fight/deck_frame.png" id="7_deck_frame"]
 [ext_resource type="Texture2D" path="res://assets/ui/prep/hp_bar.png" id="8_health_frame"]
 [ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="9_pixel_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/before_fight_wooden_board.png" id="10_board"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
@@ -95,32 +96,30 @@ theme_override_font_sizes/font_size = 8
 text = "Battles: 1/21"
 vertical_alignment = 1
 
-[node name="DeckArt" type="TextureRect" parent="."]
+[node name="BoardEntranceGroup" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
-texture = ExtResource("5_deck")
+
+[node name="BoardArt" type="TextureRect" parent="BoardEntranceGroup"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("10_board")
 expand_mode = 1
 
-[node name="ReadyArt" type="TextureRect" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_right = 320.0
-offset_bottom = 180.0
-mouse_filter = 2
-texture = ExtResource("6_ready")
-expand_mode = 1
-
-[node name="BulletHoleLayer" type="Control" parent="."]
+[node name="BulletHoleLayer" type="Control" parent="BoardEntranceGroup"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 
-[node name="BoardClickArea" type="Control" parent="."]
+[node name="BoardClickArea" type="Control" parent="BoardEntranceGroup"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 73.0
@@ -129,7 +128,23 @@ offset_right = 243.0
 offset_bottom = 116.0
 mouse_filter = 0
 
-[node name="DeckButton" type="Button" parent="."]
+[node name="DeckEntranceGroup" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="DeckArt" type="TextureRect" parent="DeckEntranceGroup"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("5_deck")
+expand_mode = 1
+
+[node name="DeckButton" type="Button" parent="DeckEntranceGroup"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 272.0
@@ -144,7 +159,23 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
 flat = true
 
-[node name="ReadyButton" type="Button" parent="."]
+[node name="ReadyEntranceGroup" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="ReadyArt" type="TextureRect" parent="ReadyEntranceGroup"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("6_ready")
+expand_mode = 1
+
+[node name="ReadyButton" type="Button" parent="ReadyEntranceGroup"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 108.0
