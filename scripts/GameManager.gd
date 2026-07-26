@@ -40,7 +40,7 @@ var enemy_actions_by_id: Dictionary = {}
 ## 【カード番号の対応】
 
 var starter_deck_ids: Array[int] = [
-	1, 2, 3, 4, 5, 6, 7, 8   
+	1, 2, 3, 4, 5, 6, 7, 8, 68
 ]
 
 # --- プレイヤー状態 ---
@@ -305,13 +305,28 @@ func record_enemy_shot() -> void:
 	if current_enemy != null:
 		enemy_attack_growth += current_enemy.attack_growth_per_shot
 
+
+func current_normal_enemy_tier() -> int:
+	if battle_index <= 2:
+		return 0
+	return mini(3, 1 + int(floor(float(battle_index - 1) / BOSS_INTERVAL)))
+
+
 func _pick_enemy(is_boss: bool) -> EnemyData:
 	if is_boss:
 		var boss_order := floori(float(battle_index) / float(BOSS_INTERVAL))
 		for enemy in all_enemies:
 			if enemy.is_boss and enemy.boss_order == boss_order:
 				return enemy
-	var pool := all_enemies.filter(func(e): return e.is_boss == is_boss)
+	var pool: Array = []
+	if not is_boss:
+		var target_tier := current_normal_enemy_tier()
+		pool = all_enemies.filter(
+			func(enemy: EnemyData) -> bool:
+				return not enemy.is_boss and enemy.tier == target_tier
+		)
+	if pool.is_empty():
+		pool = all_enemies.filter(func(enemy: EnemyData) -> bool: return enemy.is_boss == is_boss)
 	if pool.is_empty():
 		pool = all_enemies
 	if pool.is_empty():

@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 3
-enemy_name = "paper"
+enemy_name = "The Scissors"
+description = "The Scissors: He likes scissors. That's about it."
 max_hp = 37
+tier = 1
 deck_ids = Array[int]([11, 11, 11, 12, 12, 12, 15, 17])
 base_attack = 12
 buff_damage = 0

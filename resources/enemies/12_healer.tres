@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 12
-enemy_name = "healer"
+enemy_name = "The Healer"
+description = "The Healer: He heals... and waits for the perfect timing."
 max_hp = 38
-deck_ids = Array[int]([27, 28, 29, 29, 14, 6, 8, 19])
+tier = 3
+deck_ids = Array[int]([27, 28, 29, 18, 14, 8, 8, 19])
 base_attack = 12
 buff_damage = 0

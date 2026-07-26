@@ -5,11 +5,13 @@
 [resource]
 script = ExtResource("1")
 id = 9
-enemy_name = "Hide"
+enemy_name = "Mischief"
+description = "BOSS [Mischief]: He hides his intention so well, even Bobby can't read some of his hands..."
 max_hp = 82
 is_boss = true
+tier = 4
 boss_order = 2
 deck_ids = Array[int]([1, 2, 3, 4, 5, 6, 7, 16])
 base_attack = 18
 buff_damage = 8
-hidden_hand_icons = 1
+hidden_hand_icons = 2

@@ -4,6 +4,7 @@ class_name BeforeFightUI
 signal ready_pressed
 signal insert_sound_requested
 signal gunshot_requested
+signal deck_visibility_changed(is_visible: bool)
 
 const DECK_COLUMNS := 5
 const DECK_CELL_SIZE := Vector2(46, 72)
@@ -103,10 +104,12 @@ func _open_deck() -> void:
 		bullet.setup_card(card, false)
 
 	deck_overlay.visible = true
+	deck_visibility_changed.emit(true)
 
 
 func _close_deck() -> void:
 	deck_overlay.visible = false
+	deck_visibility_changed.emit(false)
 
 
 func _play_entrance() -> void:

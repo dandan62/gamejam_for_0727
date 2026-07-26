@@ -74,7 +74,12 @@ func present_fight(
 
 	var enemy_bullet := PrepBulletView.new()
 	enemy_bullet_anchor.add_child(enemy_bullet)
-	enemy_bullet.setup_enemy(enemy_turn)
+	var revealed_enemy_turn := enemy_turn.duplicate(true)
+	revealed_enemy_turn["display_hands"] = revealed_enemy_turn.get(
+		"hands",
+		[]
+	).duplicate()
+	enemy_bullet.setup_enemy(revealed_enemy_turn)
 
 
 func play_shot_cycle() -> void:

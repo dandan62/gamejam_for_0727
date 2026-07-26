@@ -5,9 +5,14 @@ class_name EnemyData
 
 @export var id: int = 0
 @export var enemy_name: String = "ならず者"
+## 戦闘前画面に表示する敵の紹介文。
+@export_multiline var description: String = ""
 @export var image: Texture2D
 @export var max_hp: int = 35
 @export var is_boss: bool = false
+## 通常敵の出現段階。0=1〜2戦目、1=3〜6戦目、2=8〜13戦目、3=15〜20戦目。
+## ボスは CSV に合わせて 4 を設定するが、通常敵の抽選には使わない。
+@export var tier: int = 0
 ## ボス戦の順番（1=7戦目、2=14戦目、3=21戦目）。
 @export var boss_order: int = 0
 
@@ -28,7 +33,7 @@ class_name EnemyData
 @export var buff_damage: int = 0
 ## Timerボス用。準備時間から差し引く秒数。
 @export var prep_time_penalty: float = 0.0
-## Hideボス用。表示上だけ「?」に置き換える手アイコン数。
+## Mischiefボス用。1ラウンド全体からランダムに「?」へ置き換える手アイコン数。
 @export var hidden_hand_icons: int = 0
 ## Devilボス用。1発解決するたび次回以降の攻撃に加算する値。
 @export var attack_growth_per_shot: int = 0

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 68
+card_name = ""
+janken_hands = Array[int]([0, 1])
+rarity = 0
+card_type = 0
+value = 6
+description = "Deal {value} damage."
+structured = false
+enchant = 1

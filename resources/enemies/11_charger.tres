@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 11
-enemy_name = "charger"
+enemy_name = "The Charger"
+description = "The Charger: His first shot carries extra force."
 max_hp = 48
+tier = 3
 deck_ids = Array[int]([24, 25, 26, 26, 14, 6, 8, 19])
 base_attack = 12
 buff_damage = 0

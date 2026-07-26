@@ -19,6 +19,7 @@ const PERSISTENT_PRECOMBAT_MUSIC_NAME := "PersistentPrecombatMusic"
 # --- パネル ---
 @onready var intro_panel: Control = %IntroPanel
 @onready var before_fight_ui: BeforeFightUI = $IntroPanel/BeforeFightViewportContainer/BeforeFightViewport/BeforeFightUI
+@onready var before_fight_enemy_info: Label = %BeforeFightEnemyInfo
 @onready var prep_panel: Control = %PrepPanel
 @onready var showdown_panel: Control = %ShowdownPanel
 
@@ -67,6 +68,9 @@ func _ready() -> void:
 	before_fight_ui.ready_pressed.connect(_on_start_battle_pressed)
 	before_fight_ui.insert_sound_requested.connect(prep_insert_audio.play)
 	before_fight_ui.gunshot_requested.connect(intro_gunshot_audio.play)
+	before_fight_ui.deck_visibility_changed.connect(
+		_on_before_fight_deck_visibility_changed
+	)
 
 	_show_intro()
 
@@ -79,6 +83,8 @@ func _show_intro() -> void:
 	var persistent_music := _get_persistent_precombat_music()
 	if persistent_music == null or not persistent_music.playing:
 		precombat_music.play()
+	before_fight_enemy_info.text = _enemy_description(GameManager.current_enemy)
+	before_fight_enemy_info.visible = true
 	before_fight_ui.configure(
 		GameManager.hp,
 		GameManager.max_hp,
@@ -86,6 +92,19 @@ func _show_intro() -> void:
 		GameManager.battle_index,
 		GameManager.TOTAL_BATTLES
 	)
+
+
+func _enemy_description(enemy: EnemyData) -> String:
+	if enemy == null:
+		return "Unknown gunman. Stay alert."
+	if not enemy.description.is_empty():
+		return enemy.description
+	return "%s: No further information." % enemy.enemy_name
+
+
+func _on_before_fight_deck_visibility_changed(is_visible: bool) -> void:
+	before_fight_enemy_info.visible = not is_visible
+
 
 func _on_start_battle_pressed() -> void:
 	precombat_music.stop()

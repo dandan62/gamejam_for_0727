@@ -1,10 +1,14 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/EndScreen.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/ui/end/game_over.png" id="2_game_over"]
 [ext_resource type="Texture2D" path="res://assets/ui/end/box_return_to_title.png" id="3_return"]
 [ext_resource type="AudioStream" path="res://assets/audio/music/title_theme.mp3" id="4_title_music"]
 [ext_resource type="Script" path="res://scripts/LoopingTitleMusic.gd" id="5_title_music_script"]
+[ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="6_pixel_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/end/ending.png" id="7_ending"]
+[ext_resource type="Texture2D" path="res://assets/ui/end/ending_dialogue_box.png" id="8_ending_box"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/ending_theme.mp3" id="9_ending_music"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
@@ -23,6 +27,11 @@ stream = ExtResource("4_title_music")
 volume_db = -10.0
 script = ExtResource("5_title_music_script")
 
+[node name="EndingMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("9_ending_music")
+volume_db = -10.0
+
 [node name="WinPanel" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
@@ -32,45 +41,101 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Background" type="ColorRect" parent="WinPanel"]
+[node name="WinViewportContainer" type="SubViewportContainer" parent="WinPanel"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.106, 0.078, 0.047, 1)
+stretch = true
+stretch_shrink = 4
 
-[node name="Center" type="CenterContainer" parent="WinPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="WinViewport" type="SubViewport" parent="WinPanel/WinViewportContainer"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
 
-[node name="VBox" type="VBoxContainer" parent="WinPanel/Center"]
-layout_mode = 2
-theme_override_constants/separation = 16
+[node name="WinUI" type="Control" parent="WinPanel/WinViewportContainer/WinViewport"]
+texture_filter = 1
+custom_minimum_size = Vector2(320, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
 
-[node name="TitleLabel" type="Label" parent="WinPanel/Center/VBox"]
+[node name="EndingBackground" type="TextureRect" parent="WinPanel/WinViewportContainer/WinViewport/WinUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("7_ending")
+expand_mode = 1
+
+[node name="EndingDialogueBox" type="TextureRect" parent="WinPanel/WinViewportContainer/WinViewport/WinUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("8_ending_box")
+expand_mode = 1
+
+[node name="CreditsClip" type="Control" parent="WinPanel"]
 unique_name_in_owner = true
-layout_mode = 2
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 32
-text = "結果"
+z_index = 50
+clip_contents = true
+layout_mode = 0
+offset_left = 220.0
+offset_top = 464.0
+offset_right = 1060.0
+offset_bottom = 700.0
+mouse_filter = 2
 
-[node name="DescLabel" type="Label" parent="WinPanel/Center/VBox"]
+[node name="CreditsText" type="RichTextLabel" parent="WinPanel/CreditsClip"]
 unique_name_in_owner = true
-layout_mode = 2
-horizontal_alignment = 1
+layout_mode = 0
+offset_right = 840.0
+offset_bottom = 560.0
+mouse_filter = 2
+theme = ExtResource("6_pixel_theme")
+theme_override_colors/default_color = Color(0.96, 0.91, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.035, 0.02, 1)
+theme_override_constants/outline_size = 2
+theme_override_constants/line_separation = 5
+theme_override_font_sizes/normal_font_size = 18
+theme_override_font_sizes/bold_font_size = 18
+bbcode_enabled = true
+text = "[center]The final gunshot rolled across the empty plains.\n\nOne by one, the fastest guns in the West had challenged him.\n\nOne by one, they had fallen exactly as he had foreseen.\n\nNo outlaw remained brave enough to speak his name.\n\nAnd so, Bobby Mundane rode into the sunset—\n\nstill undefeated.\n\n[font_size=24][b]THANK YOU FOR PLAYING![/b][/font_size]\n\nGame by\n[font_size=20]Dandancomic\nShoeMaker[/font_size][/center]"
+fit_content = false
+scroll_active = false
 autowrap_mode = 2
-text = ""
 
-[node name="RestartButton" type="Button" parent="WinPanel/Center/VBox"]
+[node name="RestartButton" type="Button" parent="WinPanel"]
 unique_name_in_owner = true
-layout_mode = 2
-text = "最初から"
+visible = false
+z_index = 60
+layout_mode = 0
+offset_left = 460.0
+offset_top = 668.0
+offset_right = 820.0
+offset_bottom = 708.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme = ExtResource("6_pixel_theme")
+theme_override_colors/font_color = Color(0.96, 0.91, 0.82, 1)
+theme_override_colors/font_hover_color = Color(1, 0.82, 0.35, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.68, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.035, 0.02, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+text = "RETURN TO TITLE"
+flat = true
 
 [node name="LossPanel" type="SubViewportContainer" parent="."]
 unique_name_in_owner = true
@@ -104,6 +169,23 @@ offset_bottom = 180.0
 mouse_filter = 2
 texture = ExtResource("2_game_over")
 expand_mode = 1
+
+[node name="DeathMessage" type="Label" parent="LossPanel/LossViewport/LossUI"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 312.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme = ExtResource("6_pixel_theme")
+theme_override_colors/font_color = Color(0.96, 0.91, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.035, 0.02, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "You died on the 1st enemy..."
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ReturnArt" type="TextureRect" parent="LossPanel/LossViewport/LossUI"]
 layout_mode = 0

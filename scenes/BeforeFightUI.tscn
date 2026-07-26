@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/BeforeFightUI.gd" id="1_ui"]
 [ext_resource type="Script" path="res://scripts/PrepHealthFill.gd" id="2_health"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/prep/hp_bar.png" id="8_health_frame"]
 [ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="9_pixel_theme"]
 [ext_resource type="Texture2D" path="res://assets/ui/before_fight/before_fight_wooden_board.png" id="10_board"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/info_box.png" id="11_info_box"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
@@ -95,6 +96,14 @@ theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 8
 text = "Battles: 1/21"
 vertical_alignment = 1
+
+[node name="EnemyInfoBox" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("11_info_box")
+expand_mode = 1
 
 [node name="BoardEntranceGroup" type="Control" parent="."]
 unique_name_in_owner = true

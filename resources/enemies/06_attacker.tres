@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 6
-enemy_name = "attacker"
+enemy_name = "Mercenary"
+description = "Mercenary: He is aggressive, and doesn't seem to care so much about getting hurt... be careful."
 max_hp = 39
+tier = 2
 deck_ids = Array[int]([1, 2, 3, 7, 11, 6, 7, 20])
 base_attack = 12
 buff_damage = 2

@@ -5,11 +5,13 @@
 [resource]
 script = ExtResource("1")
 id = 8
-enemy_name = "Timer"
+enemy_name = "Quickdraw"
+description = "BOSS [Quickdraw]: He is a fast shooter... you will have one less second in the preparation phase."
 max_hp = 73
 is_boss = true
+tier = 4
 boss_order = 1
-deck_ids = Array[int]([1, 2, 3, 4, 5, 6, 7, 15])
+deck_ids = Array[int]([1, 2, 3, 4, 5, 6, 7, 15, 19])
 base_attack = 18
 buff_damage = 10
 prep_time_penalty = 1.0

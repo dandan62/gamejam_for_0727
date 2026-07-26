@@ -11,23 +11,24 @@ static func generate_round(enemy: EnemyData, deck: Array, count: int) -> Array:
 	if deck.is_empty():
 		for i in range(count):
 			turns.append(generate_turn(enemy))
-		return turns
-	var work := deck.duplicate()
-	work.shuffle()
-	for i in range(count):
-		var action: EnemyActionData = work[i % work.size()]
-		turns.append(_action_to_turn(action, enemy))
+	else:
+		var work := deck.duplicate()
+		work.shuffle()
+		for i in range(count):
+			var action: EnemyActionData = work[i % work.size()]
+			turns.append(_action_to_turn(action))
+	_conceal_random_hands_across_round(turns, enemy.hidden_hand_icons)
 	return turns
 
 ## 行動カード → Battle が使う行動データ {type, value, hands, name}
-static func _action_to_turn(action: EnemyActionData, enemy: EnemyData) -> Dictionary:
+static func _action_to_turn(action: EnemyActionData) -> Dictionary:
 	var hands := action.janken_hands.duplicate()
 	return {
 		"id": action.id,
 		"type": action.type_string(),
 		"value": action.value,
 		"hands": hands,
-		"display_hands": _hidden_display_hands(hands, enemy.hidden_hand_icons),
+		"display_hands": hands.duplicate(),
 		"name": action.action_name,
 		"enchant": action.enchant,
 		"enchant_value": action.get_enchant_value(),
@@ -53,22 +54,37 @@ static func generate_turn(enemy: EnemyData) -> Dictionary:
 		"type": type_str,
 		"value": value,
 		"hands": hands,
-		"display_hands": _hidden_display_hands(hands, enemy.hidden_hand_icons),
+		"display_hands": hands.duplicate(),
 		"name": turn_name(type_str),
 		"enchant": CardData.Enchant.NONE,
 		"enchant_value": 0,
 	}
 
 
-static func _hidden_display_hands(hands: Array, hidden_count: int) -> Array:
-	var displayed := hands.duplicate()
-	if displayed.is_empty() or hidden_count <= 0:
-		return displayed
-	var indices := range(displayed.size())
-	indices.shuffle()
-	for index in range(min(hidden_count, displayed.size())):
-		displayed[indices[index]] = -1
-	return displayed
+static func _conceal_random_hands_across_round(
+	turns: Array,
+	hidden_count: int
+) -> void:
+	if turns.is_empty() or hidden_count <= 0:
+		return
+	var symbol_positions: Array[Vector2i] = []
+	for turn_index in range(turns.size()):
+		var turn: Dictionary = turns[turn_index]
+		var hands: Array = turn.get("hands", [])
+		for hand_index in range(hands.size()):
+			symbol_positions.append(Vector2i(turn_index, hand_index))
+	symbol_positions.shuffle()
+
+	for index in range(min(hidden_count, symbol_positions.size())):
+		var symbol_position := symbol_positions[index]
+		var turn: Dictionary = turns[symbol_position.x]
+		var displayed: Array = turn.get(
+			"display_hands",
+			turn.get("hands", [])
+		).duplicate()
+		displayed[symbol_position.y] = -1
+		turn["display_hands"] = displayed
+		turns[symbol_position.x] = turn
 
 static func random_hand_set() -> Array:
 	var all := [CardData.Hand.ROCK, CardData.Hand.PAPER, CardData.Hand.SCISSORS]

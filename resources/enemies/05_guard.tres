@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 5
-enemy_name = "guard"
+enemy_name = "The Guard"
+description = "The Guard: His shields are hard to penetrate. Bring some AP bullets if you have the chance."
 max_hp = 28
-deck_ids = Array[int]([4, 5, 6, 8, 12, 1, 2, 19])
+tier = 2
+deck_ids = Array[int]([4, 5, 8, 8, 12, 1, 2, 19])
 base_attack = 12
 buff_damage = 1

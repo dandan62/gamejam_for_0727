@@ -20,6 +20,7 @@ const SHOP_SILVER_BULLET_TEXTURE := preload("res://assets/ui/shop/bullets/silver
 const ROCK_TEXTURE := preload("res://assets/ui/prep/rock_icon_16.png")
 const PAPER_TEXTURE := preload("res://assets/ui/prep/paper_icon_16.png")
 const SCISSORS_TEXTURE := preload("res://assets/ui/prep/scissors_icon_16.png")
+const ALL_HANDS_TEXTURE := preload("res://assets/ui/prep/icon_all.png")
 const HEALING_EFFECT_TEXTURE := preload("res://assets/ui/icons/icon_healing.png")
 const QUESTION_HAND_TEXTURE := preload("res://assets/ui/icons/icon_question.png")
 const SHIELD_EFFECT_TEXTURE := preload("res://assets/ui/icons/icon_shield.png")
@@ -286,29 +287,69 @@ func _render_hands(hands: Array) -> void:
 
 	if hands.is_empty():
 		return
+	if _is_all_hands(hands):
+		var icon_size := ALL_HANDS_TEXTURE.get_size()
+		var icon_position := (
+			Vector2(15, 30)
+			+ ((Vector2(17, 17) - icon_size) * 0.5).round()
+		)
+		_add_hand_icon(ALL_HANDS_TEXTURE, icon_position, icon_size)
+		return
 
 	var positions: Array[Vector2] = []
+	var icon_box_size := Vector2(17, 17)
+	var regular_icon_size := Vector2(17, 17)
 	if hands.size() == 1:
 		positions.append(Vector2(15, 30))
-	else:
+	elif hands.size() == 2:
 		positions.append(Vector2(7, 30))
 		positions.append(Vector2(23, 30))
+	else:
+		# Three full-size hand icons are wider than the 32-pixel spacing
+		# used by adjacent belt bullets. Keep all three visible in a compact,
+		# centered row so their order remains readable without overlap.
+		icon_box_size = Vector2(11, 17)
+		regular_icon_size = Vector2(11, 11)
+		positions.append(Vector2(9, 30))
+		positions.append(Vector2(19, 30))
+		positions.append(Vector2(29, 30))
 
 	for index in range(min(hands.size(), positions.size())):
 		var icon_texture := hand_texture(int(hands[index]))
 		if icon_texture == null:
 			continue
-		var icon := TextureRect.new()
-		var icon_size := Vector2(17, 17)
+		var icon_size := regular_icon_size
 		if int(hands[index]) == -1:
-			icon_size = icon_texture.get_size()
-		icon.position = positions[index] + (Vector2(17, 17) - icon_size) * 0.5
-		icon.size = icon_size
-		icon.texture = icon_texture
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_hand_layer.add_child(icon)
+			icon_size = icon_texture.get_size().min(icon_box_size)
+		var icon_position := (
+			positions[index]
+			+ (icon_box_size - icon_size) * 0.5
+		)
+		_add_hand_icon(icon_texture, icon_position, icon_size)
+
+
+static func _is_all_hands(hands: Array) -> bool:
+	return (
+		hands.size() == 3
+		and int(hands[0]) == CardData.Hand.ROCK
+		and int(hands[1]) == CardData.Hand.SCISSORS
+		and int(hands[2]) == CardData.Hand.PAPER
+	)
+
+
+func _add_hand_icon(
+	icon_texture: Texture2D,
+	icon_position: Vector2,
+	icon_size: Vector2
+) -> void:
+	var icon := TextureRect.new()
+	icon.position = icon_position
+	icon.size = icon_size
+	icon.texture = icon_texture
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hand_layer.add_child(icon)
 
 
 func _on_mouse_entered() -> void:

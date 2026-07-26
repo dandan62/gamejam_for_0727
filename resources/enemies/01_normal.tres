@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 1
-enemy_name = "normal"
+enemy_name = "Gunman"
+description = "Gunman: Ordinary gunman. Nothing special to mention."
 max_hp = 40
+tier = 0
 deck_ids = Array[int]([1, 2, 3, 4, 5, 6, 7, 8])
 base_attack = 12
 buff_damage = 0

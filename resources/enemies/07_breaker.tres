@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = 7
-enemy_name = "breaker"
+enemy_name = "The Breaker"
+description = "The Breaker: He refuses to let you hide behind a shield. He will SHREAD."
 max_hp = 32
-deck_ids = Array[int]([21, 21, 23, 22, 5, 8, 7, 20])
+tier = 3
+deck_ids = Array[int]([21, 21, 23, 22, 5, 8, 7, 20, 24, 8])
 base_attack = 12
 buff_damage = 0
