@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/MainMenu.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/ui/title/title_background.png" id="2_background"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/title/button_start.png" id="4_start"]
 [ext_resource type="Texture2D" path="res://assets/ui/title/button_quit.png" id="5_quit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/revolver_gunshot.wav" id="6_gunshot"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/title_theme.mp3" id="7_music"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
@@ -23,6 +24,11 @@ unique_name_in_owner = true
 stream = ExtResource("6_gunshot")
 volume_db = -4.0
 max_polyphony = 8
+
+[node name="TitleMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("7_music")
+volume_db = -10.0
 
 [node name="MenuViewportContainer" type="SubViewportContainer" parent="."]
 texture_filter = 1

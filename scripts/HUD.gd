@@ -1,6 +1,8 @@
 extends HBoxContainer
 
-const CARD_SCENE := preload("res://scenes/Card.tscn")
+const DECK_BULLET_SCALE := 3.0
+const DECK_BULLET_OFFSET := Vector2(0, 15)
+const DECK_BULLET_CELL_SIZE := Vector2(168, 165)
 
 @onready var battle_label: Label = %BattleLabel
 @onready var hp_bar: ProgressBar = %HPBar
@@ -61,9 +63,16 @@ func _open_deck() -> void:
 
 	deck_title.text = "山札 （%d枚）" % deck.size()
 	for card in deck:
-		var v: CardView = CARD_SCENE.instantiate()
-		card_grid.add_child(v)
-		v.setup(card)
+		var cell := Control.new()
+		cell.custom_minimum_size = DECK_BULLET_CELL_SIZE
+		cell.mouse_filter = Control.MOUSE_FILTER_STOP
+		card_grid.add_child(cell)
+
+		var bullet := PrepBulletView.new()
+		cell.add_child(bullet)
+		bullet.position = DECK_BULLET_OFFSET
+		bullet.scale = Vector2.ONE * DECK_BULLET_SCALE
+		bullet.setup_card(card, false)
 
 	deck_overlay.visible = true
 

@@ -10,26 +10,26 @@ const TYPE_MAP := {
 	"attack": CardData.CardType.ATTACK,
 	"skill": CardData.CardType.SKILL,
 	"power": CardData.CardType.POWER,
-	"charge": CardData.CardType.POWER,
-	"pierce": CardData.CardType.ATTACK,
 }
 
 enum Phase { PREP, SHOWDOWN }
 
+const PERSISTENT_PRECOMBAT_MUSIC_NAME := "PersistentPrecombatMusic"
+
 # --- パネル ---
 @onready var intro_panel: Control = %IntroPanel
-@onready var intro_title: Label = %IntroTitle
-@onready var intro_enemy_name: Label = %IntroEnemyName
-@onready var start_battle_button: Button = %StartBattleButton
+@onready var before_fight_ui: BeforeFightUI = $IntroPanel/BeforeFightViewportContainer/BeforeFightViewport/BeforeFightUI
 @onready var prep_panel: Control = %PrepPanel
 @onready var showdown_panel: Control = %ShowdownPanel
-@onready var hud: Control = $HUD
 
 # --- 準備フェーズ ---
 @onready var prep_ui: PrepSelectionUI = $PrepPanel/PrepViewportContainer/PrepViewport/PrepSelectionUI
 @onready var duel_ui: DuelPhaseUI = $ShowdownPanel/ShowdownViewportContainer/ShowdownViewport/DuelPhaseUI
 @onready var duel_text_overlay: DuelTextOverlay = %DuelTextOverlay
 @onready var prep_insert_audio: AudioStreamPlayer = %PrepInsertAudio
+@onready var intro_gunshot_audio: AudioStreamPlayer = %IntroGunshotAudio
+@onready var precombat_music: AudioStreamPlayer = %PrecombatMusic
+@onready var combat_music: AudioStreamPlayer = %CombatMusic
 
 # --- 勝負フェーズ ---
 @onready var show_enemy_name: Label = %ShowEnemyName
@@ -45,6 +45,7 @@ enum Phase { PREP, SHOWDOWN }
 @onready var player_shield_bar: ProgressBar = %PlayerShieldBar
 
 var time_left: float
+var prep_duration := GameManager.PREP_SECONDS
 var prep_active := false
 var confirmed := false
 
@@ -54,10 +55,18 @@ var _enemy_hp_display: float = 0.0
 var _player_hp_display: float = 0.0
 
 func _ready() -> void:
+	var precombat_stream := precombat_music.stream as AudioStreamMP3
+	if precombat_stream != null:
+		precombat_stream.loop = true
+	var combat_stream := combat_music.stream as AudioStreamMP3
+	if combat_stream != null:
+		combat_stream.loop = true
 	prep_ui.confirm_pressed.connect(_on_confirm_pressed)
 	prep_ui.hand_card_clicked.connect(_on_hand_card_clicked)
 	prep_ui.slot_clicked.connect(_on_slot_clicked)
-	start_battle_button.pressed.connect(_on_start_battle_pressed)
+	before_fight_ui.ready_pressed.connect(_on_start_battle_pressed)
+	before_fight_ui.insert_sound_requested.connect(prep_insert_audio.play)
+	before_fight_ui.gunshot_requested.connect(intro_gunshot_audio.play)
 
 	_show_intro()
 
@@ -66,24 +75,39 @@ func _show_intro() -> void:
 	intro_panel.visible = true
 	prep_panel.visible = false
 	showdown_panel.visible = false
-	hud.visible = true
 	prep_active = false
-
-	if GameManager.current_enemy.is_boss:
-		intro_title.text = "ボス戦！"
-	else:
-		intro_title.text = "バトル開始"
-	intro_enemy_name.text = "%s との対決" % GameManager.current_enemy.enemy_name
+	var persistent_music := _get_persistent_precombat_music()
+	if persistent_music == null or not persistent_music.playing:
+		precombat_music.play()
+	before_fight_ui.configure(
+		GameManager.hp,
+		GameManager.max_hp,
+		GameManager.player_shield,
+		GameManager.battle_index,
+		GameManager.TOTAL_BATTLES
+	)
 
 func _on_start_battle_pressed() -> void:
+	precombat_music.stop()
+	var persistent_music := _get_persistent_precombat_music()
+	if persistent_music != null:
+		persistent_music.stop()
+		persistent_music.queue_free()
+	combat_music.play()
 	intro_panel.visible = false
 	_start_prep()
+
+
+func _get_persistent_precombat_music() -> AudioStreamPlayer:
+	return get_tree().root.get_node_or_null(
+		PERSISTENT_PRECOMBAT_MUSIC_NAME
+	) as AudioStreamPlayer
 
 func _process(delta: float) -> void:
 	# 準備フェーズのカウントダウン
 	if prep_active:
 		time_left = max(0.0, time_left - delta)
-		prep_ui.update_timer(time_left, GameManager.PREP_SECONDS)
+		prep_ui.update_timer(time_left, prep_duration)
 		if time_left <= 0.0:
 			prep_active = false
 			_confirm_set()
@@ -121,7 +145,6 @@ func _hp_text(hp: int, maxhp: int, shield: int) -> String:
 func _start_prep() -> void:
 	prep_panel.visible = true
 	showdown_panel.visible = false
-	hud.visible = false
 	duel_text_overlay.clear_result()
 
 	GameManager.regenerate_enemy_upcoming()
@@ -129,7 +152,8 @@ func _start_prep() -> void:
 	GameManager.slots = [null, null, null]
 	confirmed = false
 
-	time_left = GameManager.PREP_SECONDS
+	prep_duration = GameManager.current_prep_seconds()
+	time_left = prep_duration
 	prep_active = true
 	prep_ui.configure(
 		GameManager.prep_hand,
@@ -138,7 +162,9 @@ func _start_prep() -> void:
 		GameManager.hp,
 		GameManager.max_hp,
 		GameManager.player_shield,
-		GameManager.PREP_SECONDS
+		prep_duration,
+		GameManager.player_damage_buff,
+		GameManager.player_charge
 	)
 
 func _on_hand_card_clicked(card: CardData) -> void:
@@ -178,7 +204,6 @@ func _confirm_set() -> void:
 func _start_showdown() -> void:
 	prep_panel.visible = false
 	showdown_panel.visible = true
-	hud.visible = false
 	duel_text_overlay.clear_result()
 
 	battle_over = false
@@ -221,7 +246,17 @@ func _play_turn() -> void:
 	var result: Dictionary = GameManager.resolve_hands(player_hands, enemy_turn.hands)
 
 	duel_text_overlay.clear_result()
-	duel_ui.present_fight(player_card, enemy_turn)
+	var player_display_value := -1
+	var player_value_boosted := false
+	if player_card != null and player_card.card_type == CardData.CardType.ATTACK:
+		player_display_value = GameManager.preview_player_attack_damage(player_card, turn_index)
+		player_value_boosted = player_display_value > player_card.value
+	duel_ui.present_fight(
+		player_card,
+		enemy_turn,
+		player_display_value,
+		player_value_boosted
+	)
 	await get_tree().create_timer(0.25).timeout
 	await duel_ui.play_shot_cycle()
 
@@ -230,6 +265,7 @@ func _play_turn() -> void:
 		effect_parts.append(_apply_and_describe_player_card(player_card))
 	if result.enemy_acts:
 		effect_parts.append(_apply_and_describe_enemy_turn(enemy_turn))
+	GameManager.record_enemy_shot()
 
 	effect_parts = effect_parts.filter(func(text: String) -> bool: return not text.is_empty())
 	var effect_text := " / ".join(effect_parts)
@@ -264,7 +300,7 @@ func _apply_and_describe_player_card(card: CardData) -> String:
 	var player_shield_before := GameManager.player_shield
 	var player_charge_before := GameManager.player_charge
 
-	GameManager.apply_player_card(card)
+	GameManager.apply_player_card(card, turn_index)
 
 	match card.card_type:
 		CardData.CardType.ATTACK:
@@ -290,12 +326,10 @@ func _apply_and_describe_enemy_turn(turn: Dictionary) -> String:
 	var player_shield_before := GameManager.player_shield
 	var enemy_hp_before := GameManager.enemy_hp
 	var enemy_shield_before := GameManager.enemy_shield
-	var enemy_charge_before := GameManager.enemy_charge
-
-	GameManager.apply_enemy_turn(turn)
+	GameManager.apply_enemy_turn(turn, turn_index)
 
 	match str(turn.get("type", "")):
-		"attack", "pierce":
+		"attack":
 			return _damage_summary(
 				"TOOK",
 				player_hp_before - GameManager.hp,
@@ -306,8 +340,6 @@ func _apply_and_describe_enemy_turn(turn: Dictionary) -> String:
 		"power":
 			var healed := GameManager.enemy_hp - enemy_hp_before
 			return "ENEMY HEALED %d" % healed if healed > 0 else "ENEMY HEALTH FULL"
-		"charge":
-			return "ENEMY CHARGED +%d" % (GameManager.enemy_charge - enemy_charge_before)
 	return ""
 
 
@@ -371,12 +403,13 @@ func _play_turn_legacy() -> void:
 
 	if result.player_acts and player_card:
 		var enemy_before := GameManager.enemy_hp
-		log_lines.append(GameManager.apply_player_card(player_card))
+		log_lines.append(GameManager.apply_player_card(player_card, turn_index))
 		BattleFx.spawn_player_effect(showdown_panel, enemy_hp_bar, player_slot, player_card, enemy_before)
 	if result.enemy_acts:
 		var player_before := GameManager.hp
-		log_lines.append(GameManager.apply_enemy_turn(enemy_turn))
+		log_lines.append(GameManager.apply_enemy_turn(enemy_turn, turn_index))
 		BattleFx.spawn_enemy_effect(showdown_panel, player_hp_bar, enemy_slot, enemy_turn, player_before)
+	GameManager.record_enemy_shot()
 
 	log_label.text = "\n".join(log_lines)
 

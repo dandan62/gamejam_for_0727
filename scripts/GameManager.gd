@@ -7,7 +7,7 @@ extends Node
 
 const TOTAL_BATTLES := 21
 const BOSS_INTERVAL := 7
-const PREP_SECONDS := 10.0
+const PREP_SECONDS := 7.0
 
 const CARDS_DIR := "res://resources/cards"
 const EVENTS_DIR := "res://resources/events"
@@ -52,15 +52,14 @@ var enemy_hp: int
 var enemy_max_hp: int
 var player_shield: int = 0
 var enemy_shield: int = 0
-var enemy_charge: int = 0  # 敵の「溜め」。次の敵の攻撃に加算される
 var player_charge: int = 0  # プレイヤーの「溜め」。次の攻撃に加算される
 var player_damage_buff: int = 0  # バフ(D)。戦闘中、自分の攻撃ダメージに加算
 var enemy_damage_debuff: int = 0  # デバフ(E)。戦闘中、敵の攻撃ダメージから減算
+var enemy_attack_growth: int = 0
 
 var prep_hand: Array[CardData] = []
 var slots: Array = [null, null, null]
 var enemy_upcoming: Array = [] # 3要素: {type, value, hands, name}
-var current_scale: float = 1.0
 var game_over_reason: String = "" # "win" / "lose"
 
 func _ready() -> void:
@@ -198,28 +197,74 @@ func start_next_battle() -> void:
 	battle_index += 1
 	var is_boss := battle_index % BOSS_INTERVAL == 0
 	current_enemy = _pick_enemy(is_boss)
-	current_scale = 1.0 + floor(float(battle_index - 1) / float(BOSS_INTERVAL)) * 0.4
-	enemy_max_hp = int(round(current_enemy.max_hp * current_scale))
+	enemy_max_hp = current_enemy.max_hp
 	enemy_hp = enemy_max_hp
 	player_shield = starting_shield_bonus()
 	enemy_shield = 0
-	enemy_charge = 0
 	player_charge = 0
 	player_damage_buff = 0
 	enemy_damage_debuff = 0
+	enemy_attack_growth = 0
 	regenerate_enemy_upcoming()
-
-func is_enemy_enraged() -> bool:
-	if current_enemy == null or current_enemy.enrage_below <= 0.0:
-		return false
-	return float(enemy_hp) <= float(enemy_max_hp) * current_enemy.enrage_below
 
 func regenerate_enemy_upcoming() -> void:
 	# 敵の山札（番号で解決）から3行動を引く。生成ロジックは EnemyAI に分離。
 	var deck := resolve_enemy_deck(current_enemy)
-	enemy_upcoming = EnemyAI.generate_round(current_enemy, deck, current_scale, 3, is_enemy_enraged())
+	enemy_upcoming = EnemyAI.generate_round(current_enemy, deck, 3)
+	var projected_growth := enemy_attack_growth
+	for index in range(enemy_upcoming.size()):
+		var turn: Dictionary = enemy_upcoming[index]
+		if str(turn.get("type", "")) == "attack":
+			var display_value := preview_enemy_attack_damage(turn, index, projected_growth)
+			turn["display_value"] = display_value
+			turn["boosted_value"] = display_value > int(turn.get("value", 0))
+		enemy_upcoming[index] = turn
+		if current_enemy != null:
+			projected_growth += current_enemy.attack_growth_per_shot
+
+
+func current_prep_seconds() -> float:
+	if current_enemy == null:
+		return PREP_SECONDS
+	return maxf(1.0, PREP_SECONDS - current_enemy.prep_time_penalty)
+
+
+func normal_enemy_progression_bonus() -> int:
+	if current_enemy == null or current_enemy.is_boss:
+		return 0
+	return mini(4, int(floor(float(maxi(0, battle_index - 1)) / BOSS_INTERVAL)) * 2)
+
+
+func preview_enemy_attack_damage(
+	turn: Dictionary,
+	slot_index: int,
+	projected_growth: int = -1
+) -> int:
+	var base_value := int(turn.get("value", 0))
+	if str(turn.get("type", "")) != "attack":
+		return base_value
+	var growth := enemy_attack_growth if projected_growth < 0 else projected_growth
+	var damage := base_value + growth + normal_enemy_progression_bonus()
+	if current_enemy != null:
+		damage += current_enemy.buff_damage
+	if (
+		int(turn.get("enchant", CardData.Enchant.NONE)) == CardData.Enchant.B
+		and slot_index == 0
+	):
+		damage += int(turn.get("enchant_value", 0))
+	return damage
+
+
+func record_enemy_shot() -> void:
+	if current_enemy != null:
+		enemy_attack_growth += current_enemy.attack_growth_per_shot
 
 func _pick_enemy(is_boss: bool) -> EnemyData:
+	if is_boss:
+		var boss_order := floori(float(battle_index) / float(BOSS_INTERVAL))
+		for enemy in all_enemies:
+			if enemy.is_boss and enemy.boss_order == boss_order:
+				return enemy
 	var pool := all_enemies.filter(func(e): return e.is_boss == is_boss)
 	if pool.is_empty():
 		pool = all_enemies
@@ -239,20 +284,75 @@ func resolve_hands(player_hands: Array, enemy_hands: Array) -> Dictionary:
 	return JankenRules.resolve_hands(player_hands, enemy_hands)
 
 # ---------------- カード効果適用 ----------------
-func apply_player_card(card: CardData) -> String:
+## UI向けの非破壊ダメージ予測。実際の攻撃式と同じく、戦闘中バフ、
+## 旧式チャージ、先頭スロットのBエンチャントを含める。
+func preview_player_attack_damage(
+	card: CardData,
+	slot_index: int = -1,
+	damage_buff: int = -1,
+	charge_bonus: int = -1
+) -> int:
+	if card == null:
+		return 0
+	if card.card_type != CardData.CardType.ATTACK:
+		return card.value
+
+	var resolved_buff := player_damage_buff if damage_buff < 0 else damage_buff
+	var resolved_charge := player_charge if charge_bonus < 0 else charge_bonus
+	var opening_bonus := 0
+	if card.enchant == CardData.Enchant.B and slot_index == 0:
+		opening_bonus = card.get_enchant_value()
+	return card.value + resolved_buff + resolved_charge + opening_bonus
+
+
+func apply_player_card(card: CardData, slot_index: int = -1) -> String:
 	if card == null:
 		return ""
-	var msg := _apply_player_base(card)
-	var enchant_msg := _apply_player_enchant(card)
-	if enchant_msg != "":
-		msg += " ＋ " + enchant_msg
-	return msg
+	var enchant_value := card.get_enchant_value()
+	var enchant_messages: Array[String] = []
+	var attack_bonus := 0
+
+	# Break C resolves before the ordinary attack. Unused break damage never
+	# spills into HP; the base attack then resolves against the remaining shield.
+	if card.enchant == CardData.Enchant.C:
+		var broken := _damage_enemy_shield(enchant_value)
+		if broken > 0:
+			enchant_messages.append("敵ブロック-%d" % broken)
+
+	# Charge B is an opening-slot damage bonus, not stored charge.
+	if card.enchant == CardData.Enchant.B and slot_index == 0:
+		attack_bonus = enchant_value
+		enchant_messages.append("先制ダメージ+%d" % enchant_value)
+
+	var enemy_hp_before := enemy_hp
+	var player_hp_before := hp
+	var message := _apply_player_base(card, attack_bonus)
+	var hp_damage: int = max(0, enemy_hp_before - enemy_hp)
+
+	match card.enchant:
+		CardData.Enchant.D:
+			player_damage_buff += enchant_value
+			enchant_messages.append("与ダメ強化+%d" % enchant_value)
+		CardData.Enchant.E:
+			var removed := _remove_next_enemy_hands(slot_index, enchant_value)
+			if removed > 0:
+				enchant_messages.append("次の敵の手-%d" % removed)
+		CardData.Enchant.F:
+			if hp_damage > 0:
+				hp = min(max_hp, hp + enchant_value)
+				var healed := hp - player_hp_before
+				if healed > 0:
+					enchant_messages.append("ライフスティール+%d" % healed)
+
+	if not enchant_messages.is_empty():
+		message += " ＋ " + " ＋ ".join(enchant_messages)
+	return message
 
 ## 基本行動（攻撃/ガード/回復/溜め/崩し）の適用
-func _apply_player_base(card: CardData) -> String:
+func _apply_player_base(card: CardData, attack_bonus: int = 0) -> String:
 	match card.card_type:
 		CardData.CardType.ATTACK:
-			var dmg: int = card.value + player_charge + player_damage_buff
+			var dmg: int = card.value + player_charge + player_damage_buff + attack_bonus
 			player_charge = 0
 			var blocked = min(enemy_shield, dmg)
 			enemy_shield -= blocked
@@ -274,62 +374,57 @@ func _apply_player_base(card: CardData) -> String:
 			return "あなたの「%s」！ 敵のシールドを半減（%d→%d）" % [card.display_label(), before, enemy_shield]
 	return ""
 
-## エンチャント（追加効果）の適用。A〜F の効果はここで定義する。
-## 現状は枠のみ（効果未定義）。値は card.get_enchant_value() で大中小に応じて取れる。
-func _apply_player_enchant(card: CardData) -> String:
-	if card.enchant == CardData.Enchant.NONE:
-		return ""
-	var v := card.get_enchant_value()
-	match card.enchant:
-		CardData.Enchant.A:
-			# A: なし（効果なし）
-			return ""
-		CardData.Enchant.B:
-			# B: 貯め（次の攻撃を +v 強化）
-			player_charge += v
-			return "溜め+%d" % v
-		CardData.Enchant.C:
-			# C: ガードブレイク（敵のシールドを v 減らす）
-			var before := enemy_shield
-			enemy_shield = max(0, enemy_shield - v)
-			return "敵ブロック-%d" % (before - enemy_shield)
-		CardData.Enchant.D:
-			# D: バフ（この戦闘中、自分の攻撃ダメージ +v）
-			player_damage_buff += v
-			return "与ダメ強化+%d" % v
-		CardData.Enchant.E:
-			# E: デバフ（この戦闘中、敵の攻撃ダメージ -v）
-			enemy_damage_debuff += v
-			return "敵の与ダメ-%d" % v
-		CardData.Enchant.F:
-			# F: ライフスティール（HPを v 回復）
-			hp = min(max_hp, hp + v)
-			return "ライフスティール+%d" % v
-	return ""
+func _damage_enemy_shield(amount: int) -> int:
+	var damaged: int = min(max(0, amount), enemy_shield)
+	enemy_shield -= damaged
+	return damaged
 
-func apply_enemy_turn(turn: Dictionary) -> String:
+func _remove_next_enemy_hands(slot_index: int, amount: int) -> int:
+	var next_index := slot_index + 1
+	if slot_index < 0 or next_index >= enemy_upcoming.size():
+		return 0
+	var next_turn = enemy_upcoming[next_index]
+	if not (next_turn is Dictionary):
+		return 0
+	var hands: Array = next_turn.get("hands", []).duplicate()
+	var display_hands: Array = next_turn.get("display_hands", hands).duplicate()
+	var removed: int = min(max(0, amount), hands.size())
+	for _index in range(removed):
+		hands.remove_at(0)
+		if not display_hands.is_empty():
+			display_hands.remove_at(0)
+	next_turn["hands"] = hands
+	next_turn["display_hands"] = display_hands
+	enemy_upcoming[next_index] = next_turn
+	return removed
+
+func apply_enemy_turn(turn: Dictionary, slot_index: int = -1) -> String:
 	match turn.type:
-		"attack", "pierce":
-			var pierce: bool = turn.type == "pierce"
-			var dmg: int = max(0, turn.value + enemy_charge - enemy_damage_debuff)
-			enemy_charge = 0
-			if not pierce:
-				var blocked = min(player_shield, dmg)
-				player_shield -= blocked
-				dmg -= blocked
+		"attack":
+			if int(turn.get("enchant", CardData.Enchant.NONE)) == CardData.Enchant.C:
+				_damage_player_shield(int(turn.get("enchant_value", 0)))
+			var dmg: int = max(
+				0,
+				preview_enemy_attack_damage(turn, slot_index) - enemy_damage_debuff
+			)
+			var blocked = min(player_shield, dmg)
+			player_shield -= blocked
+			dmg -= blocked
 			hp = max(0, hp - dmg)
-			var tag := "貫通" if pierce else ""
-			return "敵の%s「%s」！ あなたに%dダメージ" % [tag, turn.name, dmg]
+			return "敵の「%s」！ あなたに%dダメージ" % [turn.name, dmg]
 		"skill":
 			enemy_shield += turn.value
 			return "敵は「%s」で%dのシールドを得た" % [turn.name, turn.value]
 		"power":
 			enemy_hp = min(enemy_max_hp, enemy_hp + turn.value)
 			return "敵は「%s」で%d回復した" % [turn.name, turn.value]
-		"charge":
-			enemy_charge += turn.value
-			return "敵は「%s」で力を溜めた（次の攻撃+%d）" % [turn.name, turn.value]
 	return ""
+
+
+func _damage_player_shield(amount: int) -> int:
+	var damaged: int = min(max(0, amount), player_shield)
+	player_shield -= damaged
+	return damaged
 
 # ---------------- イベント ----------------
 func pick_random_event() -> EventData:

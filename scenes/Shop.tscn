@@ -1,9 +1,15 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/Shop.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/ui/shop/store_background.png" id="2_background"]
 [ext_resource type="Texture2D" path="res://assets/ui/shop/store_dialogue_box.png" id="3_dialogue"]
 [ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="4_pixel_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/shop/gold_ui_box.png" id="5_gold_box"]
+[ext_resource type="Texture2D" path="res://assets/ui/shop/gold.png" id="6_gold_icon"]
+[ext_resource type="Texture2D" path="res://assets/ui/shop/leave_button.png" id="7_leave_art"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/store_theme.mp3" id="8_music"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/cash_register.wav" id="9_register"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/shop_door_chime.wav" id="10_chime"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
@@ -15,6 +21,22 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
+
+[node name="StoreMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("8_music")
+volume_db = -10.0
+
+[node name="PurchaseAudio" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("9_register")
+volume_db = -4.0
+max_polyphony = 4
+
+[node name="DoorChimeAudio" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("10_chime")
+volume_db = -4.0
 
 [node name="StoreViewportContainer" type="SubViewportContainer" parent="."]
 texture_filter = 1
@@ -81,38 +103,58 @@ text = "Welcome in!\nHow may I help you?"
 vertical_alignment = 1
 autowrap_mode = 2
 
+[node name="GoldBoxArt" type="TextureRect" parent="StoreViewportContainer/StoreViewport/StoreUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("5_gold_box")
+expand_mode = 1
+
+[node name="GoldIconArt" type="TextureRect" parent="StoreViewportContainer/StoreViewport/StoreUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("6_gold_icon")
+expand_mode = 1
+
 [node name="GoldLabel" type="Label" parent="StoreViewportContainer/StoreViewport/StoreUI"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 211.0
-offset_top = 126.0
-offset_right = 317.0
-offset_bottom = 140.0
+offset_left = 25.0
+offset_top = 8.0
+offset_right = 59.0
+offset_bottom = 26.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.84, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 8
-horizontal_alignment = 2
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LeaveArt" type="TextureRect" parent="StoreViewportContainer/StoreViewport/StoreUI"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("7_leave_art")
+expand_mode = 1
 
 [node name="LeaveButton" type="Button" parent="StoreViewportContainer/StoreViewport/StoreUI"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 264.0
-offset_top = 158.0
-offset_right = 318.0
-offset_bottom = 178.0
+offset_left = 249.0
+offset_top = 148.0
+offset_right = 315.0
+offset_bottom = 175.0
 focus_mode = 0
 mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 0.84, 0.3, 1)
-theme_override_colors/font_pressed_color = Color(0.8, 0.65, 0.25, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
-theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 8
 theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
 flat = true
-text = "LEAVE"

@@ -6,16 +6,42 @@ signal hover_started(card: CardData)
 signal hover_ended(card: CardData)
 
 const BULLET_TEXTURE := preload("res://assets/ui/prep/revolver_bullet.png")
+const HEAVY_BULLET_TEXTURE := preload("res://assets/ui/bullets/heavy_bullet.png")
+const AP_BULLET_TEXTURE := preload("res://assets/ui/bullets/ap_bullet.png")
+const SLUG_TEXTURE := preload("res://assets/ui/bullets/slug.png")
+const BUCKSHOT_TEXTURE := preload("res://assets/ui/bullets/buckshot.png")
+const SILVER_BULLET_TEXTURE := preload("res://assets/ui/bullets/silver_bullet.png")
+const SHOP_BASE_BULLET_TEXTURE := preload("res://assets/ui/shop/bullets/base_bullet.png")
+const SHOP_HEAVY_BULLET_TEXTURE := preload("res://assets/ui/shop/bullets/heavy.png")
+const SHOP_AP_BULLET_TEXTURE := preload("res://assets/ui/shop/bullets/ap_bullet.png")
+const SHOP_SLUG_TEXTURE := preload("res://assets/ui/shop/bullets/slug.png")
+const SHOP_BUCKSHOT_TEXTURE := preload("res://assets/ui/shop/bullets/buckshot.png")
+const SHOP_SILVER_BULLET_TEXTURE := preload("res://assets/ui/shop/bullets/silver.png")
 const ROCK_TEXTURE := preload("res://assets/ui/prep/rock_icon_16.png")
 const PAPER_TEXTURE := preload("res://assets/ui/prep/paper_icon_16.png")
 const SCISSORS_TEXTURE := preload("res://assets/ui/prep/scissors_icon_16.png")
+const HEALING_EFFECT_TEXTURE := preload("res://assets/ui/icons/icon_healing.png")
+const QUESTION_HAND_TEXTURE := preload("res://assets/ui/icons/icon_question.png")
+const SHIELD_EFFECT_TEXTURE := preload("res://assets/ui/icons/icon_shield.png")
+const SWORD_EFFECT_TEXTURE := preload("res://assets/ui/icons/icon_sword.png")
+
+enum BulletVisualMode { STANDARD, SHOP }
 
 const BULLET_POSITION := Vector2(15, 0)
 const BULLET_SIZE := Vector2(18, 38)
+const EFFECT_LABEL_POSITION := Vector2(26, -5)
+const SHOP_EFFECT_LABEL_POSITION := Vector2(26, 8)
+const EFFECT_VALUE_POSITION := Vector2(39, -5)
+const SHOP_EFFECT_VALUE_POSITION := Vector2(39, 8)
+const EFFECT_ICON_RIGHT := 38.0
+const EFFECT_ROW_HEIGHT := 13.0
+const BOOSTED_VALUE_COLOR := Color(1.0, 0.82, 0.15)
 
 var card_data: CardData
 var _visual_root: Control
+var _bullet_art: TextureRect
 var _hand_layer: Control
+var _effect_icon: TextureRect
 var _effect_label: Label
 var _hit_button: Button
 
@@ -30,18 +56,22 @@ func _ready() -> void:
 	_visual_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_visual_root)
 
-	var bullet := TextureRect.new()
-	bullet.position = BULLET_POSITION
-	bullet.size = BULLET_SIZE
-	bullet.texture = BULLET_TEXTURE
-	bullet.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bullet.stretch_mode = TextureRect.STRETCH_KEEP
-	bullet.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_visual_root.add_child(bullet)
+	_bullet_art = TextureRect.new()
+	_bullet_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bullet_art.stretch_mode = TextureRect.STRETCH_KEEP
+	_bullet_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_visual_root.add_child(_bullet_art)
+	_set_bullet_texture(BULLET_TEXTURE)
+
+	_effect_icon = TextureRect.new()
+	_effect_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_effect_icon.stretch_mode = TextureRect.STRETCH_KEEP
+	_effect_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_visual_root.add_child(_effect_icon)
 
 	_effect_label = Label.new()
-	_effect_label.position = Vector2(26, -5)
-	_effect_label.size = Vector2(30, 13)
+	_effect_label.position = EFFECT_LABEL_POSITION
+	_effect_label.size = Vector2(18, 13)
 	_effect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_effect_label.add_theme_font_size_override("font_size", 8)
 	_effect_label.add_theme_color_override("font_color", Color.WHITE)
@@ -69,40 +99,165 @@ func _ready() -> void:
 	add_child(_hit_button)
 
 
-func setup_card(data: CardData, interactive: bool = true) -> void:
+func setup_card(
+	data: CardData,
+	interactive: bool = true,
+	visual_mode: BulletVisualMode = BulletVisualMode.STANDARD,
+	display_value: int = -1,
+	boosted_value: bool = false
+) -> void:
 	card_data = data
-	_effect_label.text = _effect_text(data.card_type, data.value)
+	var shown_value := data.value if display_value < 0 else display_value
+	var bullet_texture: Texture2D
+	if visual_mode == BulletVisualMode.SHOP:
+		bullet_texture = shop_bullet_texture_for_enchant(data.enchant)
+	else:
+		bullet_texture = bullet_texture_for_enchant(data.enchant)
+	_set_bullet_texture(bullet_texture)
+	_effect_label.add_theme_color_override(
+		"font_color",
+		BOOSTED_VALUE_COLOR if boosted_value else Color.WHITE
+	)
+	_set_effect_visual(
+		effect_icon_texture(data.card_type),
+		effect_text(data.card_type, shown_value),
+		visual_mode
+	)
 	_render_hands(data.janken_hands)
 	_hit_button.visible = interactive
 
 
 func setup_enemy(turn: Dictionary) -> void:
 	card_data = null
-	_effect_label.text = enemy_effect_text(str(turn.get("type", "attack")), int(turn.get("value", 0)))
-	_render_hands(turn.get("hands", []))
+	_set_bullet_texture(bullet_texture_for_enchant(int(turn.get("enchant", CardData.Enchant.NONE))))
+	var type_str := str(turn.get("type", "attack"))
+	var base_value := int(turn.get("value", 0))
+	var shown_value := int(turn.get("display_value", base_value))
+	_effect_label.add_theme_color_override(
+		"font_color",
+		BOOSTED_VALUE_COLOR if bool(turn.get("boosted_value", false)) else Color.WHITE
+	)
+	_set_effect_visual(
+		enemy_effect_icon_texture(type_str),
+		enemy_effect_text(type_str, shown_value),
+		BulletVisualMode.STANDARD
+	)
+	_render_hands(turn.get("display_hands", turn.get("hands", [])))
 	_hit_button.visible = false
 
 
-## 敵行動タイプ（文字列）→ 表示テキスト。溜め=↑ / 貫通=⚡ を追加。
+static func bullet_texture_for_enchant(enchant: int) -> Texture2D:
+	match enchant:
+		CardData.Enchant.B:
+			return HEAVY_BULLET_TEXTURE
+		CardData.Enchant.C:
+			return AP_BULLET_TEXTURE
+		CardData.Enchant.D:
+			return SLUG_TEXTURE
+		CardData.Enchant.E:
+			return BUCKSHOT_TEXTURE
+		CardData.Enchant.F:
+			return SILVER_BULLET_TEXTURE
+	return BULLET_TEXTURE
+
+
+static func shop_bullet_texture_for_enchant(enchant: int) -> Texture2D:
+	match enchant:
+		CardData.Enchant.B:
+			return SHOP_HEAVY_BULLET_TEXTURE
+		CardData.Enchant.C:
+			return SHOP_AP_BULLET_TEXTURE
+		CardData.Enchant.D:
+			return SHOP_SLUG_TEXTURE
+		CardData.Enchant.E:
+			return SHOP_BUCKSHOT_TEXTURE
+		CardData.Enchant.F:
+			return SHOP_SILVER_BULLET_TEXTURE
+	return SHOP_BASE_BULLET_TEXTURE
+
+
+func _set_bullet_texture(texture: Texture2D) -> void:
+	if _bullet_art == null or texture == null:
+		return
+	var texture_size := texture.get_size()
+	_bullet_art.position = Vector2(
+		BULLET_POSITION.x + floor((BULLET_SIZE.x - texture_size.x) * 0.5),
+		BULLET_POSITION.y + BULLET_SIZE.y - texture_size.y
+	)
+	_bullet_art.size = texture_size
+	_bullet_art.texture = texture
+
+
+func _set_effect_visual(
+	icon_texture: Texture2D,
+	text: String,
+	visual_mode: BulletVisualMode
+) -> void:
+	var plain_label_position := EFFECT_LABEL_POSITION
+	var value_label_position := EFFECT_VALUE_POSITION
+	if visual_mode == BulletVisualMode.SHOP:
+		plain_label_position = SHOP_EFFECT_LABEL_POSITION
+		value_label_position = SHOP_EFFECT_VALUE_POSITION
+
+	_effect_label.text = text
+	if icon_texture == null:
+		_effect_icon.visible = false
+		_effect_label.position = plain_label_position
+		return
+
+	var icon_size := icon_texture.get_size()
+	_effect_icon.visible = true
+	_effect_icon.texture = icon_texture
+	_effect_icon.size = icon_size
+	_effect_icon.position = Vector2(
+		EFFECT_ICON_RIGHT - icon_size.x,
+		value_label_position.y + floor((EFFECT_ROW_HEIGHT - icon_size.y) * 0.5)
+	)
+	_effect_label.position = value_label_position
+
+
+## 敵行動タイプ（文字列）→ 表示テキスト。
 static func enemy_effect_text(type_str: String, value: int) -> String:
 	match type_str:
 		"skill":
-			return "🛡%d" % value
+			return str(value)
 		"power":
-			return "✚%d" % value
-		"charge":
-			return "↑%d" % value
-		"pierce":
-			return "⚡%d" % value
-	return "⚔%d" % value
+			return str(value)
+	return str(value)
 
 
 static func effect_text(action_type: int, value: int) -> String:
+	if effect_icon_texture(action_type) != null:
+		return str(value)
 	return _effect_text(action_type, value)
+
+
+static func effect_icon_texture(action_type: int) -> Texture2D:
+	match action_type:
+		CardData.CardType.ATTACK:
+			return SWORD_EFFECT_TEXTURE
+		CardData.CardType.SKILL:
+			return SHIELD_EFFECT_TEXTURE
+		CardData.CardType.POWER:
+			return HEALING_EFFECT_TEXTURE
+	return null
+
+
+static func enemy_effect_icon_texture(type_str: String) -> Texture2D:
+	match type_str:
+		"skill":
+			return SHIELD_EFFECT_TEXTURE
+		"attack":
+			return SWORD_EFFECT_TEXTURE
+		"power":
+			return HEALING_EFFECT_TEXTURE
+	return null
 
 
 static func hand_texture(hand: int) -> Texture2D:
 	match hand:
+		-1:
+			return QUESTION_HAND_TEXTURE
 		CardData.Hand.ROCK:
 			return ROCK_TEXTURE
 		CardData.Hand.PAPER:
@@ -117,7 +272,7 @@ static func _effect_text(action_type: int, value: int) -> String:
 		CardData.CardType.SKILL:
 			return "🛡%d" % value
 		CardData.CardType.POWER:
-			return "✚%d" % value
+			return str(value)
 		CardData.CardType.CHARGE:
 			return "↑%d" % value
 		CardData.CardType.SHIELD_BREAK:
@@ -144,8 +299,11 @@ func _render_hands(hands: Array) -> void:
 		if icon_texture == null:
 			continue
 		var icon := TextureRect.new()
-		icon.position = positions[index]
-		icon.size = Vector2(17, 17)
+		var icon_size := Vector2(17, 17)
+		if int(hands[index]) == -1:
+			icon_size = icon_texture.get_size()
+		icon.position = positions[index] + (Vector2(17, 17) - icon_size) * 0.5
+		icon.size = icon_size
 		icon.texture = icon_texture
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP

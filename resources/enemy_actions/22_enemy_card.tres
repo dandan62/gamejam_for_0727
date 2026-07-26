@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyActionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/EnemyActionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 22
+action_name = "Break"
+janken_hands = Array[int]([0])
+type = 0
+value = 13
+enchant = 3
+enchant_size = 1

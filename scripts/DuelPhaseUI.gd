@@ -50,7 +50,12 @@ func begin_showdown(
 	)
 
 
-func present_fight(player_card: CardData, enemy_turn: Dictionary) -> void:
+func present_fight(
+	player_card: CardData,
+	enemy_turn: Dictionary,
+	player_display_value: int = -1,
+	player_value_boosted: bool = false
+) -> void:
 	clear_result()
 	_set_animation_frame(0)
 	_clear_bullet(player_bullet_anchor)
@@ -59,7 +64,13 @@ func present_fight(player_card: CardData, enemy_turn: Dictionary) -> void:
 	if player_card != null:
 		var player_bullet := PrepBulletView.new()
 		player_bullet_anchor.add_child(player_bullet)
-		player_bullet.setup_card(player_card, false)
+		player_bullet.setup_card(
+			player_card,
+			false,
+			PrepBulletView.BulletVisualMode.STANDARD,
+			player_display_value,
+			player_value_boosted
+		)
 
 	var enemy_bullet := PrepBulletView.new()
 	enemy_bullet_anchor.add_child(enemy_bullet)

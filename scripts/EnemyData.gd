@@ -3,10 +3,13 @@ class_name EnemyData
 
 ## 敵1体分のデータ。[新規リソース] → EnemyData で作成し res://resources/enemies/ に保存。
 
+@export var id: int = 0
 @export var enemy_name: String = "ならず者"
 @export var image: Texture2D
 @export var max_hp: int = 35
 @export var is_boss: bool = false
+## ボス戦の順番（1=7戦目、2=14戦目、3=21戦目）。
+@export var boss_order: int = 0
 
 ## 敵の山札を行動カードの番号(id)で指定する（推奨）。
 ## 例: [1, 1, 3, 4]  同じ番号を複数入れると出やすくなる。
@@ -21,8 +24,11 @@ class_name EnemyData
 ## デッキが空のときに使う基礎攻撃力（フォールバック用）
 @export var base_attack: int = 7
 
-## --- HP依存の発狂ギミック ---
-## HP割合がこの値以下になると発狂（0以下なら発狂しない）。例: 0.4
-@export var enrage_below: float = 0.0
-## 発狂中、攻撃系の value に加算するボーナス
-@export var enrage_bonus: int = 0
+## CSVのbuff_damage。すべての攻撃弾に加算する固定ダメージ。
+@export var buff_damage: int = 0
+## Timerボス用。準備時間から差し引く秒数。
+@export var prep_time_penalty: float = 0.0
+## Hideボス用。表示上だけ「?」に置き換える手アイコン数。
+@export var hidden_hand_icons: int = 0
+## Devilボス用。1発解決するたび次回以降の攻撃に加算する値。
+@export var attack_growth_per_shot: int = 0

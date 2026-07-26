@@ -2,14 +2,15 @@ extends Control
 
 const STOCK_COUNT := 4
 const WELCOME_TEXT := "Welcome in!\nHow may I help you?"
+const LEAVE_HOVER_COLOR := Color(1.2, 1.12, 0.9, 1.0)
 const BUCKLER := preload("res://resources/relics/buckler.tres")
 const HORSESHOE := preload("res://resources/relics/horseshoe.tres")
 const RELIC_STOCK := [BUCKLER, HORSESHOE]
 const BULLET_POSITIONS := [
-	Vector2(191, 13),
-	Vector2(227, 13),
-	Vector2(191, 63),
-	Vector2(227, 63),
+	Vector2(191, 4),
+	Vector2(227, 4),
+	Vector2(191, 54),
+	Vector2(227, 54),
 ]
 const RELIC_POSITIONS := {
 	&"buckler": Vector2(258, 30),
@@ -19,7 +20,11 @@ const RELIC_POSITIONS := {
 @onready var item_layer: Control = %ItemLayer
 @onready var dialogue_text: Label = %DialogueText
 @onready var gold_label: Label = %GoldLabel
+@onready var leave_art: TextureRect = %LeaveArt
 @onready var leave_button: Button = %LeaveButton
+@onready var store_music: AudioStreamPlayer = %StoreMusic
+@onready var purchase_audio: AudioStreamPlayer = %PurchaseAudio
+@onready var door_chime_audio: AudioStreamPlayer = %DoorChimeAudio
 
 var card_stock: Array[Dictionary] = []
 var relic_stock: Array[Dictionary] = []
@@ -27,7 +32,14 @@ var _hovered_key: StringName
 
 
 func _ready() -> void:
+	var music_stream := store_music.stream as AudioStreamMP3
+	if music_stream != null:
+		music_stream.loop = true
+	store_music.play()
+	door_chime_audio.play()
 	leave_button.pressed.connect(_on_leave)
+	leave_button.mouse_entered.connect(_on_leave_hovered)
+	leave_button.mouse_exited.connect(_on_leave_unhovered)
 	_build_stock()
 	_render_stock()
 	dialogue_text.text = WELCOME_TEXT
@@ -64,12 +76,12 @@ func _build_stock() -> void:
 func _price_for(card: CardData) -> int:
 	match card.rarity:
 		CardData.Rarity.COMMON:
-			return 20
+			return randi_range(30, 40)
 		CardData.Rarity.UNCOMMON:
-			return 40
+			return randi_range(60, 70)
 		CardData.Rarity.RARE:
-			return 65
-	return 25
+			return randi_range(120, 130)
+	return randi_range(30, 40)
 
 
 func _render_stock() -> void:
@@ -87,7 +99,7 @@ func _render_stock() -> void:
 			continue
 		_add_relic_view(item)
 
-	gold_label.text = "GOLD %d" % GameManager.gold
+	gold_label.text = str(GameManager.gold)
 
 
 func _add_card_view(index: int, item: Dictionary) -> void:
@@ -100,7 +112,7 @@ func _add_card_view(index: int, item: Dictionary) -> void:
 	var view := PrepBulletView.new()
 	item_layer.add_child(view)
 	view.position = BULLET_POSITIONS[index] - PrepBulletView.BULLET_POSITION
-	view.setup_card(card)
+	view.setup_card(card, true, PrepBulletView.BulletVisualMode.SHOP)
 	view.clicked.connect(_on_card_pressed.bind(item))
 	view.hover_started.connect(_on_card_hovered.bind(item))
 	view.hover_ended.connect(_on_card_exited.bind(item))
@@ -147,11 +159,13 @@ func _on_card_hovered(_card: CardData, item: Dictionary) -> void:
 	if card == null:
 		return
 	_hovered_key = _card_key(card)
-	dialogue_text.text = "%s\n%s\nPRICE %dG" % [
-		_card_effect_text(card),
-		_hand_text(card.janken_hands),
-		int(item.get("price", 0)),
-	]
+	var lines: Array[String] = [_card_effect_text(card)]
+	var enchant_description := card.get_enchant_description()
+	if not enchant_description.is_empty():
+		lines.append(enchant_description)
+	lines.append(_hand_text(card.janken_hands))
+	lines.append("PRICE %dG" % int(item.get("price", 0)))
+	dialogue_text.text = "\n".join(lines)
 
 
 func _on_card_exited(card: CardData, _item: Dictionary) -> void:
@@ -174,6 +188,7 @@ func _on_card_pressed(_card: CardData, item: Dictionary) -> void:
 	item["sold"] = true
 	_hovered_key = &""
 	dialogue_text.text = ""
+	purchase_audio.play()
 	_render_stock()
 
 
@@ -212,6 +227,7 @@ func _on_relic_pressed(item: Dictionary) -> void:
 	item["sold"] = true
 	_hovered_key = &""
 	dialogue_text.text = ""
+	purchase_audio.play()
 	_render_stock()
 
 
@@ -255,5 +271,19 @@ func _hand_text(hands: Array) -> String:
 
 
 func _on_leave() -> void:
+	var exit_chime := AudioStreamPlayer.new()
+	exit_chime.stream = door_chime_audio.stream
+	exit_chime.volume_db = door_chime_audio.volume_db
+	get_tree().root.add_child(exit_chime)
+	exit_chime.finished.connect(exit_chime.queue_free)
+	exit_chime.play()
 	GameManager.start_next_battle()
-	get_tree().change_scene_to_file("res://scenes/Battle.tscn")
+	get_tree().change_scene_to_file.call_deferred("res://scenes/Battle.tscn")
+
+
+func _on_leave_hovered() -> void:
+	leave_art.self_modulate = LEAVE_HOVER_COLOR
+
+
+func _on_leave_unhovered() -> void:
+	leave_art.self_modulate = Color.WHITE

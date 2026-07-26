@@ -1,11 +1,14 @@
 [gd_scene format=3 uid="uid://3vchsna0rm5k"]
 
 [ext_resource type="Script" uid="uid://c05hjthri3682" path="res://scripts/Battle.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/BeforeFightUI.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/PrepSelectionUI.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/DuelPhaseUI.tscn" id="4"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/revolver_insert.wav" id="5_insert"]
 [ext_resource type="PackedScene" path="res://scenes/DuelTextOverlay.tscn" id="6_duel_text"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/revolver_gunshot.wav" id="7_gunshot"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/precombat_theme.mp3" id="8_precombat_music"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/combat_theme.mp3" id="9_combat_music"]
 
 [sub_resource type="StyleBoxFlat" id="ehp_bg"]
 bg_color = Color(0.1, 0.08, 0.05, 1)
@@ -42,8 +45,23 @@ script = ExtResource("1")
 [node name="PrepInsertAudio" type="AudioStreamPlayer" parent="."]
 unique_name_in_owner = true
 stream = ExtResource("5_insert")
-volume_db = -6.0
+volume_db = -0.9
 max_polyphony = 4
+
+[node name="IntroGunshotAudio" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("7_gunshot")
+max_polyphony = 8
+
+[node name="PrecombatMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("8_precombat_music")
+volume_db = -10.0
+
+[node name="CombatMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("9_combat_music")
+volume_db = -10.0
 
 [node name="Background" type="ColorRect" parent="." unique_id=1228515331]
 layout_mode = 1
@@ -63,38 +81,23 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Center" type="CenterContainer" parent="IntroPanel" unique_id=722464835]
+[node name="BeforeFightViewportContainer" type="SubViewportContainer" parent="IntroPanel"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+stretch = true
+stretch_shrink = 4
 
-[node name="VBox" type="VBoxContainer" parent="IntroPanel/Center" unique_id=892792656]
-layout_mode = 2
-theme_override_constants/separation = 20
-alignment = 1
+[node name="BeforeFightViewport" type="SubViewport" parent="IntroPanel/BeforeFightViewportContainer"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
 
-[node name="IntroTitle" type="Label" parent="IntroPanel/Center/VBox" unique_id=332171787]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "バトル開始"
-horizontal_alignment = 1
-
-[node name="IntroEnemyName" type="Label" parent="IntroPanel/Center/VBox" unique_id=512006774]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "敵との対決"
-horizontal_alignment = 1
-
-[node name="StartBattleButton" type="Button" parent="IntroPanel/Center/VBox" unique_id=321697113]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "覚悟を決める"
+[node name="BeforeFightUI" parent="IntroPanel/BeforeFightViewportContainer/BeforeFightViewport" instance=ExtResource("2")]
 
 [node name="PrepPanel" type="Control" parent="." unique_id=1822581260]
 unique_name_in_owner = true
@@ -284,6 +287,3 @@ render_target_update_mode = 4
 
 [node name="DuelTextOverlay" parent="ShowdownPanel" instance=ExtResource("6_duel_text")]
 unique_name_in_owner = true
-
-[node name="HUD" parent="." unique_id=1751153560 instance=ExtResource("2")]
-layout_mode = 1

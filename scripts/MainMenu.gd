@@ -8,10 +8,12 @@ const IMPACT_FRAME_SECONDS := 0.1
 const HOLE_LIFETIME_SECONDS := 15.0
 const HOLE_FADE_SECONDS := 3.0
 const MAX_ACTIVE_HOLES := 64
+const MUSIC_RESTART_DELAY_SECONDS := 2.0
 
 @onready var board_click_area: Control = %BoardClickArea
 @onready var bullet_hole_layer: Control = %BulletHoleLayer
 @onready var title_gunshot_audio: AudioStreamPlayer = %TitleGunshotAudio
+@onready var title_music: AudioStreamPlayer = %TitleMusic
 
 var _board_image: Image
 var _active_holes: Array[TextureRect] = []
@@ -19,6 +21,14 @@ var _active_holes: Array[TextureRect] = []
 
 func _ready() -> void:
 	_board_image = TITLE_BOARD_TEXTURE.get_image()
+	title_music.finished.connect(_on_title_music_finished)
+	title_music.play()
+
+
+func _on_title_music_finished() -> void:
+	await get_tree().create_timer(MUSIC_RESTART_DELAY_SECONDS).timeout
+	if is_inside_tree():
+		title_music.play()
 
 
 func _on_start_pressed() -> void:
@@ -31,7 +41,7 @@ func _on_start_pressed() -> void:
 
 	GameManager.new_game()
 	GameManager.start_next_battle()
-	get_tree().change_scene_to_file("res://scenes/Battle.tscn")
+	get_tree().change_scene_to_file.call_deferred("res://scenes/Battle.tscn")
 
 
 func _on_quit_pressed() -> void:

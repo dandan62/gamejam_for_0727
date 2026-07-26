@@ -6,42 +6,39 @@ class_name EnemyAI
 
 ## 1ラウンド分（count 個）の行動を生成して返す。
 ## deck（解決済みの EnemyActionData 配列）から引く。空なら base_attack のランダム行動にする。
-## enraged=true（発狂中）のときは攻撃系を優先的に引き、攻撃値にボーナスを加える。
-static func generate_round(enemy: EnemyData, deck: Array, scale: float, count: int, enraged: bool = false) -> Array:
+static func generate_round(enemy: EnemyData, deck: Array, count: int) -> Array:
 	var turns := []
 	if deck.is_empty():
 		for i in range(count):
-			turns.append(generate_turn(enemy, scale))
+			turns.append(generate_turn(enemy))
 		return turns
 	var work := deck.duplicate()
-	if enraged:
-		var attacks := work.filter(func(a): return a.is_attack())
-		if not attacks.is_empty():
-			work = attacks
 	work.shuffle()
 	for i in range(count):
 		var action: EnemyActionData = work[i % work.size()]
-		turns.append(_action_to_turn(action, scale, enemy, enraged))
+		turns.append(_action_to_turn(action, enemy))
 	return turns
 
 ## 行動カード → Battle が使う行動データ {type, value, hands, name}
-static func _action_to_turn(action: EnemyActionData, scale: float, enemy: EnemyData, enraged: bool) -> Dictionary:
-	var value := int(round(action.value * scale))
-	if enraged and action.is_attack():
-		value += enemy.enrage_bonus
+static func _action_to_turn(action: EnemyActionData, enemy: EnemyData) -> Dictionary:
+	var hands := action.janken_hands.duplicate()
 	return {
+		"id": action.id,
 		"type": action.type_string(),
-		"value": value,
-		"hands": action.janken_hands.duplicate(),
+		"value": action.value,
+		"hands": hands,
+		"display_hands": _hidden_display_hands(hands, enemy.hidden_hand_icons),
 		"name": action.action_name,
+		"enchant": action.enchant,
+		"enchant_value": action.get_enchant_value(),
 	}
 
 ## 敵の1行動をランダム生成して返す（山札が無い敵のフォールバック）: {type, value, hands, name}
-static func generate_turn(enemy: EnemyData, scale: float) -> Dictionary:
+static func generate_turn(enemy: EnemyData) -> Dictionary:
 	var roll := randf()
 	var type_str: String
 	var value: int
-	var base_atk := int(round(enemy.base_attack * scale))
+	var base_atk := enemy.base_attack
 	if roll < 0.6:
 		type_str = "attack"
 		value = base_atk + randi() % 4
@@ -51,12 +48,27 @@ static func generate_turn(enemy: EnemyData, scale: float) -> Dictionary:
 	else:
 		type_str = "power"
 		value = int(round(base_atk * 0.9))
+	var hands := random_hand_set()
 	return {
 		"type": type_str,
 		"value": value,
-		"hands": random_hand_set(),
+		"hands": hands,
+		"display_hands": _hidden_display_hands(hands, enemy.hidden_hand_icons),
 		"name": turn_name(type_str),
+		"enchant": CardData.Enchant.NONE,
+		"enchant_value": 0,
 	}
+
+
+static func _hidden_display_hands(hands: Array, hidden_count: int) -> Array:
+	var displayed := hands.duplicate()
+	if displayed.is_empty() or hidden_count <= 0:
+		return displayed
+	var indices := range(displayed.size())
+	indices.shuffle()
+	for index in range(min(hidden_count, displayed.size())):
+		displayed[indices[index]] = -1
+	return displayed
 
 static func random_hand_set() -> Array:
 	var all := [CardData.Hand.ROCK, CardData.Hand.PAPER, CardData.Hand.SCISSORS]

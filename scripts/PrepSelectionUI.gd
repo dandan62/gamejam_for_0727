@@ -47,6 +47,8 @@ const SLOT_CENTERS := [
 var _hand: Array[CardData] = []
 var _slots: Array = []
 var _enemy_upcoming: Array = []
+var _player_damage_buff := 0
+var _player_charge := 0
 var _confirm_hovered := false
 var _confirm_down := false
 
@@ -76,11 +78,15 @@ func configure(
 	hp: int,
 	max_hp: int,
 	shield: int,
-	duration: float
+	duration: float,
+	damage_buff: int = 0,
+	charge: int = 0
 ) -> void:
 	_hand.assign(hand)
 	_slots = slots.duplicate()
 	_enemy_upcoming = enemy_upcoming.duplicate(true)
+	_player_damage_buff = damage_buff
+	_player_charge = charge
 	_confirm_hovered = false
 	_confirm_down = false
 	_update_confirm_visual()
@@ -139,30 +145,85 @@ func _render_hand() -> void:
 		var view := PrepBulletView.new()
 		hand_layer.add_child(view)
 		view.position = BELT_BULLET_POSITIONS[index] - Vector2(15, 0)
-		view.setup_card(card)
+		var display_value := card.value
+		var boosted := false
+		if card.card_type == CardData.CardType.ATTACK:
+			display_value = GameManager.preview_player_attack_damage(
+				card,
+				-1,
+				_player_damage_buff,
+				0
+			)
+			boosted = display_value > card.value
+		view.setup_card(
+			card,
+			true,
+			PrepBulletView.BulletVisualMode.STANDARD,
+			display_value,
+			boosted
+		)
 		view.clicked.connect(func(selected_card: CardData): hand_card_clicked.emit(selected_card))
 
 
 func _render_slots() -> void:
 	_clear_layer(slot_metadata_layer)
+	var projected_buff := _player_damage_buff
+	var projected_charge := _player_charge
 	for index in range(inserted_rounds.size()):
 		var card: CardData = _slots[index] if index < _slots.size() else null
 		inserted_rounds[index].visible = card != null
 		slot_buttons[index].disabled = card == null
 		if card == null:
 			continue
-		_add_slot_effect(index, card)
+		var display_value := card.value
+		var boosted := false
+		if card.card_type == CardData.CardType.ATTACK:
+			display_value = GameManager.preview_player_attack_damage(
+				card,
+				index,
+				projected_buff,
+				projected_charge
+			)
+			boosted = display_value > card.value
+			projected_charge = 0
+		_add_slot_effect(index, card, display_value, boosted)
 		_add_slot_hands(index, card.janken_hands)
+		if card.enchant == CardData.Enchant.D:
+			projected_buff += card.get_enchant_value()
 
 
-func _add_slot_effect(index: int, card: CardData) -> void:
+func _add_slot_effect(
+	index: int,
+	card: CardData,
+	display_value: int,
+	boosted: bool
+) -> void:
+	var center: Vector2 = SLOT_CENTERS[index]
+	var icon_texture := PrepBulletView.effect_icon_texture(card.card_type)
+	if icon_texture != null:
+		var icon_size := icon_texture.get_size()
+		var icon := TextureRect.new()
+		icon.position = center + Vector2(
+			14.0,
+			-7.0 + floor((13.0 - icon_size.y) * 0.5)
+		)
+		icon.size = icon_size
+		icon.texture = icon_texture
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_metadata_layer.add_child(icon)
+
 	var label := Label.new()
-	label.position = SLOT_CENTERS[index] + Vector2(14, -7)
-	label.size = Vector2(31, 13)
-	label.text = PrepBulletView.effect_text(card.card_type, card.value)
+	label.position = center + Vector2(30 if icon_texture != null else 14, -7)
+	label.size = Vector2(18, 13)
+	label.text = PrepBulletView.effect_text(card.card_type, display_value)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override("font_size", 8)
-	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override(
+		"font_color",
+		PrepBulletView.BOOSTED_VALUE_COLOR if boosted else Color.WHITE
+	)
 	label.add_theme_color_override("font_outline_color", Color(0.04, 0.025, 0.015))
 	label.add_theme_constant_override("outline_size", 1)
 	slot_metadata_layer.add_child(label)

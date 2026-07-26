@@ -20,7 +20,7 @@ enum CardType { ATTACK, SKILL, POWER, CHARGE, SHIELD_BREAK }
 enum ActionKind { ATTACK, GUARD, HEAL }
 ## 効果の大きさ（小=1 / 中=2 / 大=3）
 enum Size { SMALL = 1, MEDIUM = 2, LARGE = 3 }
-## エンチャント（追加効果）。効果内容は GameManager._apply_player_enchant で定義する。
+## エンチャント（追加効果）。効果内容は GameManager.apply_player_card で定義する。
 enum Enchant { NONE, A, B, C, D, E, F }
 
 ## 基本行動×大きさ → 実際の効果量。ここを編集すれば大中小の値を調整できる。
@@ -29,8 +29,15 @@ const ACTION_VALUE := {
 	ActionKind.GUARD:  { Size.SMALL: 6, Size.MEDIUM: 8,  Size.LARGE: 12 },
 	ActionKind.HEAL:   { Size.SMALL: 2, Size.MEDIUM: 3,  Size.LARGE: 5 },
 }
-## エンチャントの大きさ → 効果量（汎用）。エンチャント側で使う値。
-const ENCHANT_VALUE := { Size.SMALL: 2, Size.MEDIUM: 4, Size.LARGE: 6 }
+## エンチャント種別×レベル → 実際の効果量。
+const ENCHANT_VALUE := {
+	Enchant.A: { Size.SMALL: 0, Size.MEDIUM: 0 },
+	Enchant.B: { Size.SMALL: 4, Size.MEDIUM: 8 },
+	Enchant.C: { Size.SMALL: 10, Size.MEDIUM: 20 },
+	Enchant.D: { Size.SMALL: 1, Size.MEDIUM: 2 },
+	Enchant.E: { Size.SMALL: 1, Size.MEDIUM: 2 },
+	Enchant.F: { Size.SMALL: 2, Size.MEDIUM: 3 },
+}
 
 ## カード固有の番号(ID)。カードを番号で管理・参照するためのユニークな値。
 ## デッキ構成やショップ・イベントで、この番号を使ってカードを指定できる。
@@ -91,7 +98,23 @@ func _action_to_card_type(a: int) -> CardType:
 func get_enchant_value() -> int:
 	if enchant == Enchant.NONE:
 		return 0
-	return ENCHANT_VALUE[enchant_size]
+	var levels: Dictionary = ENCHANT_VALUE.get(enchant, {})
+	return int(levels.get(enchant_size, 0))
+
+func get_enchant_description() -> String:
+	var enchant_value := get_enchant_value()
+	match enchant:
+		Enchant.B:
+			return "SLOT 1: +%d DAMAGE" % enchant_value
+		Enchant.C:
+			return "BREAK %d SHIELD FIRST" % enchant_value
+		Enchant.D:
+			return "COMBAT ATTACKS +%d" % enchant_value
+		Enchant.E:
+			return "NEXT ENEMY: -%d HAND" % enchant_value
+		Enchant.F:
+			return "ON HP HIT: HEAL %d" % enchant_value
+	return ""
 
 ## カードの内容を表すコード文字列（例: "攻2/A3/グチ"）。
 func code() -> String:

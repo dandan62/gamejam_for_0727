@@ -27,7 +27,7 @@ static func spawn_player_effect(panel: Node, enemy_hp_bar: Control, player_slot:
 ## 敵の行動に応じた数字を出す
 static func spawn_enemy_effect(panel: Node, player_hp_bar: Control, enemy_slot: Control, turn: Dictionary, player_before: int) -> void:
 	match turn.type:
-		"attack", "pierce":
+		"attack":
 			var dmg := player_before - GameManager.hp
 			if dmg > 0:
 				float_beside(panel, player_hp_bar, "-%d" % dmg, COLOR_DAMAGE)
@@ -35,8 +35,6 @@ static func spawn_enemy_effect(panel: Node, player_hp_bar: Control, enemy_slot: 
 			float_text(panel, enemy_slot, "+%d" % turn.value, COLOR_SHIELD)
 		"power":
 			float_text(panel, enemy_slot, "+%d" % turn.value, COLOR_HEAL)
-		"charge":
-			float_text(panel, enemy_slot, "溜+%d" % turn.value, Color(0.95, 0.85, 0.2))
 
 ## HPバーの右横に数字を出して、上へ動きながらフェード
 static func float_beside(parent: Node, bar: Control, text: String, color: Color) -> void:

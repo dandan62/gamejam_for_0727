@@ -1,0 +1,215 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/BeforeFightUI.gd" id="1_ui"]
+[ext_resource type="Script" path="res://scripts/PrepHealthFill.gd" id="2_health"]
+[ext_resource type="Script" path="res://scripts/PrepShieldFill.gd" id="3_shield"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/before_fight.png" id="4_background"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/deck_icon.png" id="5_deck"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/ready_button.png" id="6_ready"]
+[ext_resource type="Texture2D" path="res://assets/ui/before_fight/deck_frame.png" id="7_deck_frame"]
+[ext_resource type="Texture2D" path="res://assets/ui/prep/hp_bar.png" id="8_health_frame"]
+[ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="9_pixel_theme"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
+
+[node name="BeforeFightUI" type="Control"]
+unique_name_in_owner = true
+texture_filter = 1
+theme = ExtResource("9_pixel_theme")
+custom_minimum_size = Vector2(320, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 1
+script = ExtResource("1_ui")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("4_background")
+expand_mode = 1
+
+[node name="HealthVisualRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = -4.0
+offset_right = 332.0
+offset_bottom = 176.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 2
+
+[node name="HealthFrame" type="TextureRect" parent="HealthVisualRoot"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("8_health_frame")
+expand_mode = 1
+
+[node name="HealthFill" type="Control" parent="HealthVisualRoot"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+script = ExtResource("2_health")
+
+[node name="ShieldFill" type="Control" parent="HealthVisualRoot"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+script = ExtResource("3_shield")
+
+[node name="HealthText" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 85.0
+offset_right = 73.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "50/50"
+horizontal_alignment = 1
+
+[node name="BattleCount" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 112.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.015, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "Battles: 1/21"
+vertical_alignment = 1
+
+[node name="DeckArt" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("5_deck")
+expand_mode = 1
+
+[node name="ReadyArt" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("6_ready")
+expand_mode = 1
+
+[node name="BulletHoleLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="BoardClickArea" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 73.0
+offset_top = 51.0
+offset_right = 243.0
+offset_bottom = 116.0
+mouse_filter = 0
+
+[node name="DeckButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 272.0
+offset_top = 7.0
+offset_right = 309.0
+offset_bottom = 39.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+flat = true
+
+[node name="ReadyButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 108.0
+offset_top = 125.0
+offset_right = 211.0
+offset_bottom = 154.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+flat = true
+
+[node name="DeckOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 1
+
+[node name="DeckDismissButton" type="Button" parent="DeckOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+flat = true
+
+[node name="DeckFrameArt" type="TextureRect" parent="DeckOverlay"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("7_deck_frame")
+expand_mode = 1
+
+[node name="DeckPanelBlocker" type="Control" parent="DeckOverlay"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 16.0
+offset_right = 281.0
+offset_bottom = 167.0
+mouse_filter = 0
+
+[node name="DeckScroll" type="ScrollContainer" parent="DeckOverlay"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 17.0
+offset_right = 279.0
+offset_bottom = 166.0
+horizontal_scroll_mode = 0
+
+[node name="DeckGrid" type="GridContainer" parent="DeckOverlay/DeckScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = -2
+theme_override_constants/v_separation = 2
+columns = 5

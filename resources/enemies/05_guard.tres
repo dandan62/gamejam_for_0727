@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 5
+enemy_name = "guard"
+max_hp = 28
+deck_ids = Array[int]([4, 5, 6, 8, 12, 1, 2, 19])
+base_attack = 12
+buff_damage = 1

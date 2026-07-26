@@ -14,4 +14,4 @@ func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 
 func _on_restart_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
+	get_tree().change_scene_to_file.call_deferred("res://scenes/MainMenu.tscn")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = 10
+enemy_name = "devil"
+max_hp = 61
+is_boss = true
+boss_order = 3
+deck_ids = Array[int]([1, 2, 3, 4, 5, 6, 7, 17])
+base_attack = 18
+buff_damage = 6
+attack_growth_per_shot = 1

@@ -1,74 +1,121 @@
 extends Control
 
-@onready var name_label: Label = %EventNameLabel
-@onready var desc_label: Label = %DescLabel
-@onready var image_rect: TextureRect = %EventImage
-@onready var choices_box: VBoxContainer = %ChoicesBox
+const SIGN_HOVER_COLOR := Color(1.35, 1.22, 0.9, 1.0)
+const CHOICE_HOVER_COLOR := Color(1.0, 0.84, 0.45, 1.0)
+const REST_HEAL_AMOUNT := 15
+const HURRY_GOLD_REWARD := 30
+const PERSISTENT_PRECOMBAT_MUSIC_NAME := "PersistentPrecombatMusic"
 
-var event: EventData
+@onready var branch_ui: Control = %BranchUI
+@onready var rest_ui: Control = %RestUI
+@onready var store_sign: TextureButton = %StoreSign
+@onready var inn_sign: TextureButton = %InnSign
+@onready var rest_button: Button = %RestButton
+@onready var hurry_button: Button = %HurryButton
+@onready var rest_text: Label = %RestText
+@onready var hurry_text: Label = %HurryText
+@onready var branch_music: AudioStreamPlayer = %BranchMusic
+
 
 func _ready() -> void:
-	var options := _pick_two_events()
-	if options.is_empty():
-		# イベントが1つも登録されていない場合はそのまま次のバトルへ
-		_go_to_next_battle()
+	_prepare_persistent_branch_music()
+	_setup_sign(store_sign)
+	_setup_sign(inn_sign)
+	store_sign.pressed.connect(_on_store_sign_pressed)
+	inn_sign.pressed.connect(_on_inn_sign_pressed)
+	store_sign.mouse_entered.connect(_on_sign_hovered.bind(store_sign))
+	store_sign.mouse_exited.connect(_on_sign_unhovered.bind(store_sign))
+	inn_sign.mouse_entered.connect(_on_sign_hovered.bind(inn_sign))
+	inn_sign.mouse_exited.connect(_on_sign_unhovered.bind(inn_sign))
+	rest_button.pressed.connect(_on_rest_pressed)
+	hurry_button.pressed.connect(_on_hurry_pressed)
+	rest_button.mouse_entered.connect(_on_choice_hovered.bind(rest_text))
+	rest_button.mouse_exited.connect(_on_choice_unhovered.bind(rest_text))
+	hurry_button.mouse_entered.connect(_on_choice_hovered.bind(hurry_text))
+	hurry_button.mouse_exited.connect(_on_choice_unhovered.bind(hurry_text))
+	_show_branch()
+
+
+func _setup_sign(sign_button: TextureButton) -> void:
+	if sign_button.texture_normal == null:
 		return
-	if options.size() == 1:
-		# 1種類しかなければ選択を挟まずそのまま表示
-		_show_event(options[0])
+	var image := sign_button.texture_normal.get_image()
+	if image == null or image.is_empty():
 		return
-	_show_selection(options)
+	var click_mask := BitMap.new()
+	click_mask.create_from_image_alpha(image, 0.1)
+	sign_button.texture_click_mask = click_mask
 
-# ---------------- フェーズ1：2つのイベントから選ぶ ----------------
-func _show_selection(options: Array) -> void:
-	image_rect.texture = null
-	name_label.text = "分かれ道"
-	desc_label.text = "どちらへ向かう？"
-	_clear_choices()
-	for ev in options:
-		var btn := Button.new()
-		btn.text = "%s\n%s" % [ev.event_name, ev.description]
-		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		btn.custom_minimum_size = Vector2(360, 0)
-		btn.pressed.connect(_show_event.bind(ev))
-		choices_box.add_child(btn)
 
-# ---------------- フェーズ2：選んだイベントの選択肢 ----------------
-func _show_event(selected: EventData) -> void:
-	event = selected
-	# カード売り場イベントなら専用のショップ画面へ
-	if event.is_shop:
-		get_tree().change_scene_to_file("res://scenes/Shop.tscn")
-		return
-	name_label.text = event.event_name
-	desc_label.text = event.description
-	image_rect.texture = event.image
-	_clear_choices()
-	for choice in event.choices:
-		var btn := Button.new()
-		btn.text = _format_choice_label(choice)
-		btn.disabled = GameManager.gold < choice.gold_cost
-		btn.pressed.connect(_on_choice_pressed.bind(choice))
-		choices_box.add_child(btn)
+func _show_branch() -> void:
+	branch_ui.visible = true
+	rest_ui.visible = false
+	store_sign.self_modulate = Color.WHITE
+	inn_sign.self_modulate = Color.WHITE
+	rest_text.self_modulate = Color.WHITE
+	hurry_text.self_modulate = Color.WHITE
 
-func _pick_two_events() -> Array:
-	var pool := GameManager.all_events.duplicate()
-	pool.shuffle()
-	return pool.slice(0, min(2, pool.size()))
 
-func _clear_choices() -> void:
-	for c in choices_box.get_children():
-		c.queue_free()
+func _on_sign_hovered(sign_button: TextureButton) -> void:
+	sign_button.self_modulate = SIGN_HOVER_COLOR
 
-func _format_choice_label(choice: EventChoiceData) -> String:
-	if choice.gold_cost > 0:
-		return "%s (%dG)" % [choice.label, choice.gold_cost]
-	return choice.label
 
-func _on_choice_pressed(choice: EventChoiceData) -> void:
-	GameManager.apply_event_choice(choice)
+func _on_sign_unhovered(sign_button: TextureButton) -> void:
+	sign_button.self_modulate = Color.WHITE
+
+
+func _on_store_sign_pressed() -> void:
+	_stop_persistent_branch_music()
+	get_tree().change_scene_to_file.call_deferred("res://scenes/Shop.tscn")
+
+
+func _on_inn_sign_pressed() -> void:
+	branch_ui.visible = false
+	rest_ui.visible = true
+
+
+func _on_choice_hovered(choice_text: Label) -> void:
+	choice_text.self_modulate = CHOICE_HOVER_COLOR
+
+
+func _on_choice_unhovered(choice_text: Label) -> void:
+	choice_text.self_modulate = Color.WHITE
+
+
+func _on_rest_pressed() -> void:
+	GameManager.hp = min(GameManager.max_hp, GameManager.hp + REST_HEAL_AMOUNT)
 	_go_to_next_battle()
+
+
+func _on_hurry_pressed() -> void:
+	GameManager.gold += HURRY_GOLD_REWARD
+	_go_to_next_battle()
+
 
 func _go_to_next_battle() -> void:
 	GameManager.start_next_battle()
-	get_tree().change_scene_to_file("res://scenes/Battle.tscn")
+	get_tree().change_scene_to_file.call_deferred("res://scenes/Battle.tscn")
+
+
+func _prepare_persistent_branch_music() -> void:
+	var existing := get_tree().root.get_node_or_null(
+		PERSISTENT_PRECOMBAT_MUSIC_NAME
+	) as AudioStreamPlayer
+	if existing != null:
+		branch_music.queue_free()
+		branch_music = existing
+		return
+
+	branch_music.name = PERSISTENT_PRECOMBAT_MUSIC_NAME
+	var music_stream := branch_music.stream as AudioStreamMP3
+	if music_stream != null:
+		music_stream.loop = true
+	branch_music.play()
+	branch_music.call_deferred("reparent", get_tree().root)
+
+
+func _stop_persistent_branch_music() -> void:
+	if not is_instance_valid(branch_music):
+		return
+	branch_music.stop()
+	branch_music.queue_free()

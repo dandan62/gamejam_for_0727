@@ -1,58 +1,215 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=11 format=3]
 
-[ext_resource type="Script" path="res://scripts/Event.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/Event.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/branch/branch_background.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://assets/ui/branch/store_signs.png" id="3_store"]
+[ext_resource type="Texture2D" path="res://assets/ui/branch/inn_signs.png" id="4_inn"]
+[ext_resource type="Texture2D" path="res://assets/ui/branch/dialogue_box.png" id="5_dialogue"]
+[ext_resource type="Theme" path="res://resources/themes/pixel_ui_theme.tres" id="6_pixel_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/rest/rest.png" id="7_rest_background"]
+[ext_resource type="Texture2D" path="res://assets/ui/rest/rest_dialogue_box.png" id="8_rest_dialogue"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/precombat_theme.mp3" id="9_branch_music"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rest_button"]
 
 [node name="Event" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource("1")
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="BranchMusic" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("9_branch_music")
+volume_db = -10.0
+
+[node name="BranchViewportContainer" type="SubViewportContainer" parent="."]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.106, 0.078, 0.047, 1)
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 4
 
-[node name="Center" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="BranchViewport" type="SubViewport" parent="BranchViewportContainer"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
-layout_mode = 2
-theme_override_constants/separation = 14
-custom_minimum_size = Vector2(420, 0)
-
-[node name="EventNameLabel" type="Label" parent="Center/VBox"]
+[node name="BranchUI" type="Control" parent="BranchViewportContainer/BranchViewport"]
 unique_name_in_owner = true
-layout_mode = 2
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
-text = "イベント"
+texture_filter = 1
+custom_minimum_size = Vector2(320, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+theme = ExtResource("6_pixel_theme")
 
-[node name="EventImage" type="TextureRect" parent="Center/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 140)
+[node name="Background" type="TextureRect" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("2_background")
 expand_mode = 1
-stretch_mode = 5
 
-[node name="DescLabel" type="Label" parent="Center/VBox"]
+[node name="InnSign" type="TextureButton" parent="BranchViewportContainer/BranchViewport/BranchUI"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_default_cursor_shape = 2
+focus_mode = 0
+texture_normal = ExtResource("4_inn")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="StoreSign" type="TextureButton" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_default_cursor_shape = 2
+focus_mode = 0
+texture_normal = ExtResource("3_store")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="DialogueArt" type="TextureRect" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("5_dialogue")
+expand_mode = 1
+
+[node name="DialogueText" type="Label" parent="BranchViewportContainer/BranchViewport/BranchUI"]
+layout_mode = 0
+offset_left = 54.0
+offset_top = 154.0
+offset_right = 266.0
+offset_bottom = 174.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 8
+text = "Which path would you take?"
 horizontal_alignment = 1
-autowrap_mode = 2
-text = "何かが起きた。"
+vertical_alignment = 1
 
-[node name="ChoicesBox" type="VBoxContainer" parent="Center/VBox"]
+[node name="RestUI" type="SubViewportContainer" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="HUD" parent="." instance=ExtResource("2")]
+visible = false
+texture_filter = 1
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 4
+
+[node name="RestViewport" type="SubViewport" parent="RestUI"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
+
+[node name="RestScene" type="Control" parent="RestUI/RestViewport"]
+texture_filter = 1
+custom_minimum_size = Vector2(320, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+theme = ExtResource("6_pixel_theme")
+
+[node name="Background" type="TextureRect" parent="RestUI/RestViewport/RestScene"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("7_rest_background")
+expand_mode = 1
+
+[node name="DialogueArt" type="TextureRect" parent="RestUI/RestViewport/RestScene"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("8_rest_dialogue")
+expand_mode = 1
+
+[node name="RestButton" type="Button" parent="RestUI/RestViewport/RestScene"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 51.0
+offset_top = 152.0
+offset_right = 149.0
+offset_bottom = 176.0
+mouse_default_cursor_shape = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rest_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_rest_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_rest_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rest_button")
+flat = true
+
+[node name="HurryButton" type="Button" parent="RestUI/RestViewport/RestScene"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 173.0
+offset_top = 152.0
+offset_right = 271.0
+offset_bottom = 176.0
+mouse_default_cursor_shape = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rest_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_rest_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_rest_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rest_button")
+flat = true
+
+[node name="RestText" type="Label" parent="RestUI/RestViewport/RestScene"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 53.0
+offset_top = 154.0
+offset_right = 147.0
+offset_bottom = 174.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 1
+theme_override_constants/line_spacing = -1
+theme_override_font_sizes/font_size = 8
+text = "TAKE A BREAK
+HEAL 15 HP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HurryText" type="Label" parent="RestUI/RestViewport/RestScene"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 175.0
+offset_top = 154.0
+offset_right = 269.0
+offset_bottom = 174.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 1
+theme_override_constants/line_spacing = -1
+theme_override_font_sizes/font_size = 8
+text = "HURRY ONWARD
+GAIN 30G"
+horizontal_alignment = 1
+vertical_alignment = 1

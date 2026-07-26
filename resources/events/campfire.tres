@@ -5,26 +5,26 @@
 
 [sub_resource type="Resource" id="1"]
 script = ExtResource("2")
-label = "焚火で休む (HP+15)"
+label = "Take a break (HP+15)"
 gold_cost = 0
 gold_delta = 0
 hp_delta = 15
 max_hp_delta = 0
 remove_random_card = false
-result_text = "体力が回復した。"
+result_text = "Recovered 15 HP."
 
 [sub_resource type="Resource" id="2"]
 script = ExtResource("2")
-label = "そのまま先を急ぐ"
+label = "Hurry onward (30G)"
 gold_cost = 0
-gold_delta = 5
+gold_delta = 30
 hp_delta = 0
 max_hp_delta = 0
 remove_random_card = false
-result_text = "道中で5Gを拾った。"
+result_text = "Gained 30G by pressing onward."
 
 [resource]
 script = ExtResource("1")
 event_name = "荒野の焚火"
-description = "夜営の焚火を見つけた。休んでいくか、それとも先を急ぐか。"
+description = "Take a break to recover, or hurry onward for extra gold."
 choices = Array[Resource]([SubResource("1"), SubResource("2")])
