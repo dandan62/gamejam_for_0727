@@ -1,4 +1,9 @@
 # ガンマン・ジャンケン道 (Godot Prototype)
+<img width="794" height="446" alt="image" src="https://github.com/user-attachments/assets/3635e025-9b2f-496e-9e9c-01bab97ce5f9" />
+
+遊べます↓
+https://itch.io/jam/gmtk-jam-2026/rate/4825702
+
 
 Slay the Spire 風のカードバトル×じゃんけんゲーム。Godot 4.3 で動作確認。
 
